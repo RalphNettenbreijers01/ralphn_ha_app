@@ -37,17 +37,17 @@ export default function Dashboard() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Vandaag-widget */}
-        <section className="card lg:col-span-2 !border-0 !bg-primary !p-0 text-white">
-          <div className="p-5 pb-3">
+        <section className="card self-start lg:col-span-2">
+          <div className="mb-4">
             <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold"><Sun size={20} /> Vandaag</h2>
-              <span className="text-sm text-white/80">{todayDone} van {todays.length} voltooid</span>
+              <h2 className="flex items-center gap-2 text-lg font-semibold"><Sun size={20} className="text-warn" /> Vandaag</h2>
+              <span className="text-sm text-muted">{todayDone} van {todays.length} voltooid</span>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/20">
-              <div className="h-full rounded-full bg-white transition-all" style={{ width: `${pct}%` }} />
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-fg/10">
+              <div className="h-full rounded-full bg-ok transition-all" style={{ width: `${pct}%` }} />
             </div>
           </div>
-          <div className="rounded-xl bg-card p-4 text-fg">
+          <div>
             {todays.length === 0 ? (
               <div className="py-8 text-center text-muted">
                 <CheckCircle2 className="mx-auto mb-2 text-ok" size={32} />

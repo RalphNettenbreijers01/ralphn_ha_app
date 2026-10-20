@@ -28,10 +28,10 @@ export default function App() {
   return (
     <div className="min-h-screen md:flex">
       {/* zijbalk (desktop) */}
-      <aside className="hidden w-60 shrink-0 border-r border-line bg-card md:block">
+      <aside className="hidden w-56 shrink-0 border-r-2 border-line bg-fg/10 md:block">
         <div className="sticky top-0 p-4">
           <div className="mb-6 flex items-center gap-2 px-2 text-xl font-bold text-primary">
-            <span className="text-2xl">🏡</span> Thuis
+            <span className="text-2xl">🏡</span> Huishouden
           </div>
           <nav className="space-y-1">
             {ROUTES.map(({ id: rid, label, icon: Icon }) => (
@@ -39,7 +39,7 @@ export default function App() {
                 key={rid}
                 href={`#/${rid}`}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  route.id === rid ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-fg/10'
+                  route.id === rid ? "bg-primary text-white shadow-sm" : "text-fg hover:bg-card"
                 }`}
               >
                 <Icon size={18} /> {label}
