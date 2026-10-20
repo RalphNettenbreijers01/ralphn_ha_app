@@ -1,7 +1,8 @@
-import { Check, Clock, Pencil } from '../components/icons';
+import { Check, Clock, Pencil, RepeatIcon } from '../components/icons';
 import Avatar from './Avatar';
 import { useStore } from '../store/AppContext';
-import { STATUS_LABELS, type Task } from '../types';
+import { STATUS_LABELS, type Task, type TaskInstance } from '../types';
+import { describeRepeat } from '../lib/recurrence';
 import { formatShort } from '../lib/dates';
 
 export const STATUS_STYLES: Record<Task['status'], string> = {
@@ -11,8 +12,8 @@ export const STATUS_STYLES: Record<Task['status'], string> = {
 };
 
 interface Props {
-  task: Task;
-  onEdit: (t: Task) => void;
+  task: TaskInstance;
+  onEdit: (t: TaskInstance) => void;
   showDate?: boolean;
 }
 
@@ -25,7 +26,7 @@ export default function TaskRow({ task, onEdit, showDate }: Props) {
   return (
     <li className="flex items-center gap-3 rounded-xl p-3 border border-line transition hover:bg-fg/5">
       <button
-        onClick={() => setTaskStatus(task.id, done ? 'open' : 'done')}
+        onClick={() => setTaskStatus(task.id, done ? 'open' : 'done', task.occurrence)}
         aria-label={done ? 'Markeer als open' : 'Markeer als voltooid'}
         title={done ? 'Terug naar open' : 'Afvinken'}
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
@@ -42,6 +43,11 @@ export default function TaskRow({ task, onEdit, showDate }: Props) {
             <span className="inline-flex items-center gap-1"><Clock size={12} /> {task.time}</span>
           )}
           {room && <span>{room.icon} {room.name}</span>}
+          {task.repeat && (
+            <span className="inline-flex items-center gap-1" title={describeRepeat(task.repeat)}>
+              <RepeatIcon size={12} /> {describeRepeat(task.repeat)}
+            </span>
+          )}
           <span className={`rounded-full px-2 py-0.5 font-medium ${STATUS_STYLES[task.status]}`}>{STATUS_LABELS[task.status]}</span>
         </div>
       </div>

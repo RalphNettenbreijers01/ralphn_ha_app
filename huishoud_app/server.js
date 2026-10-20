@@ -76,6 +76,49 @@ const todayISO = () => {
 };
 const slug = (s) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'gebruiker';
+// Terugkerende taken: zelfde logica als src/lib/recurrence.ts (houd beide gelijk).
+const parseISO = (d) => {
+  const [y, m, day] = d.split('-').map(Number);
+  return new Date(y, m - 1, day);
+};
+const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const addDays = (d, n) => {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+};
+function nth(base, r, k) {
+  const n = k * r.interval;
+  if (r.unit === 'day') return addDays(base, n);
+  if (r.unit === 'week') return addDays(base, n * 7);
+  const months = r.unit === 'year' ? n * 12 : n;
+  const y = base.getFullYear();
+  const m = base.getMonth() + months;
+  return new Date(y, m, Math.min(base.getDate(), new Date(y, m + 1, 0).getDate()));
+}
+function expandTask(task, from, to) {
+  const r = task.repeat;
+  if (!r) return task.date >= from && task.date <= to ? [task] : [];
+  const interval = Math.max(1, Math.floor(r.interval) || 1);
+  const rule = { ...r, interval };
+  const base = parseISO(task.date);
+  let k = 0;
+  if (rule.unit === 'day' || rule.unit === 'week') {
+    const step = interval * (rule.unit === 'week' ? 7 : 1);
+    k = Math.max(0, Math.ceil(Math.round((parseISO(from) - base) / 86400000) / step));
+  }
+  const out = [];
+  for (let i = 0; i < 3000; i++, k++) {
+    const d = toISO(nth(base, rule, k));
+    if (d > to || (rule.until && d > rule.until)) break;
+    if (d < from || task.skipped?.includes(d)) continue;
+    out.push({ ...task, date: d, occurrence: d, status: task.occStatus?.[d] ?? 'open' });
+  }
+  return out;
+}
+const expandAll = (tasks, from, to, allOneOff = false) =>
+  tasks.flatMap((t) => (!t.repeat && allOneOff ? [t] : expandTask(t, from, to)));
+
 const byTime = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99');
 
 function summarize(data) {
@@ -89,8 +132,12 @@ function summarize(data) {
     ruimte: room(t.roomId)?.name ?? null,
     status: t.status,
   });
-  const todays = data.tasks.filter((t) => t.date === today).sort(byTime);
-  const overdue = data.tasks.filter((t) => t.date < today && t.status !== 'done');
+  const tasks = data.tasks ?? [];
+  const todays = expandAll(tasks, today, today).sort(byTime);
+  const yesterday = toISO(addDays(new Date(), -1));
+  const overdue = expandAll(tasks, toISO(addDays(new Date(), -7)), yesterday, true).filter(
+    (t) => t.date < today && t.status !== 'done',
+  );
   return { today, todays, overdue, describe, user, room };
 }
 

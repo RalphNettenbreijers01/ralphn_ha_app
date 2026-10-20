@@ -28,3 +28,7 @@ Opties van de add-on:
 - `notify_time`: tijdstip van de dagelijkse herinnering (standaard `08:00`).
 
 Per gebruiker kun je in de app een eigen meldingsservice instellen. Elke gebruiker krijgt dan alleen de eigen taken van vandaag, plus achterstallige taken.
+
+## Terugkerende taken
+
+Kies bij een taak onder "Herhalen": dagelijks, wekelijks, om de 2 weken, elke 4 weken, maandelijks, jaarlijks of aangepast (elke N dagen/weken/maanden/jaren), eventueel met einddatum. Status (afvinken) geldt per voorkomen; "Deze keer overslaan" slaat één voorkomen over. Wijzigen of verwijderen geldt voor de hele reeks. Maandelijkse taken op de 29e-31e vallen in kortere maanden op de laatste dag. Terugkerende taken worden ook meegenomen in de sensoren en meldingen.

@@ -15,6 +15,14 @@ export interface Room {
   icon: string; // emoji
 }
 
+export type RepeatUnit = 'day' | 'week' | 'month' | 'year';
+
+export interface Repeat {
+  unit: RepeatUnit;
+  interval: number; // elke N dagen/weken/maanden/jaren
+  until?: string; // YYYY-MM-DD, optioneel einddatum (inclusief)
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -24,7 +32,13 @@ export interface Task {
   date: string; // YYYY-MM-DD
   time: string; // HH:mm or ''
   status: TaskStatus;
+  repeat?: Repeat; // terugkerende taak: 'date' is de startdatum
+  skipped?: string[]; // overgeslagen voorkomens (datums)
+  occStatus?: Record<string, TaskStatus>; // status per voorkomen (datum), alleen bij terugkerende taken
 }
+
+/** Eén voorkomen van een taak; bij terugkerende taken is 'date' de datum van dit voorkomen. */
+export type TaskInstance = Task & { occurrence?: string };
 
 export interface AppData {
   users: User[];

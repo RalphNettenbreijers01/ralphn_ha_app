@@ -2,32 +2,76 @@ import { useState, type FormEvent } from 'react';
 import { Trash2 } from './icons';
 import Modal from './Modal';
 import { useStore } from '../store/AppContext';
-import { STATUS_LABELS, type Task, type TaskStatus } from '../types';
+import { STATUS_LABELS, type Repeat, type RepeatUnit, type TaskInstance, type TaskStatus } from '../types';
+import { UNIT_LABELS } from '../lib/recurrence';
 import { todayISO } from '../lib/dates';
 
 interface Props {
   /** Existing task (has id) or defaults for a new one. */
-  task?: Partial<Task> | null;
+  task?: Partial<TaskInstance> | null;
   onClose: () => void;
 }
 
+const PRESETS: Record<string, Repeat | null> = {
+  none: null,
+  day1: { unit: 'day', interval: 1 },
+  week1: { unit: 'week', interval: 1 },
+  week2: { unit: 'week', interval: 2 },
+  week4: { unit: 'week', interval: 4 },
+  month1: { unit: 'month', interval: 1 },
+  year1: { unit: 'year', interval: 1 },
+};
+const PRESET_LABELS: Record<string, string> = {
+  none: 'Niet herhalen',
+  day1: 'Dagelijks',
+  week1: 'Wekelijks',
+  week2: 'Om de 2 weken',
+  week4: 'Elke 4 weken',
+  month1: 'Maandelijks',
+  year1: 'Jaarlijks',
+  custom: 'Aangepast…',
+};
+
+const presetOf = (r?: Repeat) => {
+  if (!r) return 'none';
+  const hit = Object.entries(PRESETS).find(([, p]) => p && p.unit === r.unit && p.interval === r.interval);
+  return hit ? hit[0] : 'custom';
+};
+
 export default function TaskModal({ task, onClose }: Props) {
-  const { users, rooms, saveTask, deleteTask } = useStore();
+  const { users, rooms, tasks, saveTask, deleteTask, skipOccurrence } = useStore();
   const isEdit = !!task?.id;
+  // bij een voorkomen van een terugkerende taak bewerk je de hele reeks: vul het formulier met de basistaak
+  const base = task?.id ? tasks.find((t) => t.id === task.id) : undefined;
+  const src = base ?? task;
   const [form, setForm] = useState({
-    title: task?.title ?? '',
-    description: task?.description ?? '',
-    userId: task?.userId ?? '',
-    roomId: task?.roomId ?? '',
-    date: task?.date ?? todayISO(),
-    time: task?.time ?? '',
+    title: src?.title ?? '',
+    description: src?.description ?? '',
+    userId: src?.userId ?? '',
+    roomId: src?.roomId ?? '',
+    date: src?.date ?? todayISO(),
+    time: src?.time ?? '',
     status: (task?.status ?? 'open') as TaskStatus,
+    preset: presetOf(src?.repeat),
+    interval: src?.repeat?.interval ?? 1,
+    unit: (src?.repeat?.unit ?? 'week') as RepeatUnit,
+    until: src?.repeat?.until ?? '',
   });
+  const repeat: Repeat | null =
+    form.preset === 'custom'
+      ? { unit: form.unit, interval: Math.max(1, Math.floor(form.interval) || 1) }
+      : PRESETS[form.preset];
+  const occurrence = task?.occurrence ?? form.date;
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.date) return;
+    const occStatus = { ...base?.occStatus };
+    if (repeat) {
+      if (form.status === 'open') delete occStatus[occurrence];
+      else occStatus[occurrence] = form.status;
+    }
     saveTask({
       id: task?.id,
       title: form.title.trim(),
@@ -36,14 +80,23 @@ export default function TaskModal({ task, onClose }: Props) {
       roomId: form.roomId || null,
       date: form.date,
       time: form.time,
-      status: form.status,
+      status: repeat ? 'open' : form.status,
+      repeat: repeat ? { ...repeat, ...(form.until ? { until: form.until } : {}) } : undefined,
+      occStatus: repeat ? occStatus : undefined,
     });
     onClose();
   };
 
   const remove = () => {
-    if (task?.id && confirm('Deze taak verwijderen?')) {
+    if (task?.id && confirm(base?.repeat ? 'Deze taak en alle herhalingen verwijderen?' : 'Deze taak verwijderen?')) {
       deleteTask(task.id);
+      onClose();
+    }
+  };
+
+  const skip = () => {
+    if (task?.id && task.occurrence) {
+      skipOccurrence(task.id, task.occurrence);
       onClose();
     }
   };
@@ -81,13 +134,39 @@ export default function TaskModal({ task, onClose }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label" htmlFor="t-date">Datum</label>
+            <label className="label" htmlFor="t-date">{repeat ? 'Startdatum' : 'Datum'}</label>
             <input id="t-date" type="date" required className="input" value={form.date} onChange={(e) => set('date', e.target.value)} />
           </div>
           <div>
             <label className="label" htmlFor="t-time">Tijd (optioneel)</label>
             <input id="t-time" type="time" className="input" value={form.time} onChange={(e) => set('time', e.target.value)} />
           </div>
+        </div>
+        <div className="space-y-2">
+          <label className="label" htmlFor="t-repeat">Herhalen</label>
+          <select id="t-repeat" className="input" value={form.preset} onChange={(e) => set('preset', e.target.value)}>
+            {Object.entries(PRESET_LABELS).map(([k, label]) => (
+              <option key={k} value={k}>{label}</option>
+            ))}
+          </select>
+          {form.preset === 'custom' && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted">Elke</span>
+              <input type="number" min={1} max={365} className="input !w-20" aria-label="Aantal" value={form.interval} onChange={(e) => set('interval', Number(e.target.value))} />
+              <select className="input !w-auto" aria-label="Eenheid" value={form.unit} onChange={(e) => set('unit', e.target.value as RepeatUnit)}>
+                {(Object.keys(UNIT_LABELS) as RepeatUnit[]).map((u) => (
+                  <option key={u} value={u}>{UNIT_LABELS[u][1]}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {repeat && (
+            <div>
+              <label className="label" htmlFor="t-until">Herhalen tot (optioneel)</label>
+              <input id="t-until" type="date" min={form.date} className="input" value={form.until} onChange={(e) => set('until', e.target.value)} />
+              <p className="mt-1 text-xs text-muted">Wijzigingen gelden voor de hele reeks, vanaf de startdatum. Status geldt alleen voor {task?.occurrence ? 'dit voorkomen' : 'de eerste keer'}.</p>
+            </div>
+          )}
         </div>
         <div>
           <span className="label">Status</span>
@@ -108,9 +187,14 @@ export default function TaskModal({ task, onClose }: Props) {
         </div>
         <div className="flex items-center justify-between pt-2">
           {isEdit ? (
-            <button type="button" className="btn-ghost text-danger hover:!bg-danger/10" onClick={remove}>
-              <Trash2 size={16} /> Verwijderen
-            </button>
+            <div className="flex flex-wrap gap-1">
+              <button type="button" className="btn-ghost text-danger hover:!bg-danger/10" onClick={remove}>
+                <Trash2 size={16} /> {base?.repeat ? 'Reeks verwijderen' : 'Verwijderen'}
+              </button>
+              {base?.repeat && task?.occurrence && (
+                <button type="button" className="btn-ghost" onClick={skip}>Deze keer overslaan</button>
+              )}
+            </div>
           ) : (
             <span />
           )}

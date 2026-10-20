@@ -11,7 +11,8 @@ interface Store extends AppData {
   deleteRoom: (id: string) => void;
   saveTask: (t: Draft<Task>) => void;
   deleteTask: (id: string) => void;
-  setTaskStatus: (id: string, status: TaskStatus) => void;
+  setTaskStatus: (id: string, status: TaskStatus, occurrence?: string) => void;
+  skipOccurrence: (id: string, date: string) => void;
   moveTask: (id: string, date: string) => void;
 }
 
@@ -70,8 +71,26 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
     [],
   );
   const setTaskStatus = useCallback(
-    (id: string, status: TaskStatus) =>
-      setData((d) => ({ ...d, tasks: d.tasks.map((t) => (t.id === id ? { ...t, status } : t)) })),
+    (id: string, status: TaskStatus, occurrence?: string) =>
+      setData((d) => ({
+        ...d,
+        tasks: d.tasks.map((t) => {
+          if (t.id !== id) return t;
+          if (!t.repeat || !occurrence) return { ...t, status };
+          const occStatus = { ...t.occStatus };
+          if (status === 'open') delete occStatus[occurrence];
+          else occStatus[occurrence] = status;
+          return { ...t, occStatus };
+        }),
+      })),
+    [],
+  );
+  const skipOccurrence = useCallback(
+    (id: string, date: string) =>
+      setData((d) => ({
+        ...d,
+        tasks: d.tasks.map((t) => (t.id === id ? { ...t, skipped: [...(t.skipped ?? []), date] } : t)),
+      })),
     [],
   );
   const moveTask = useCallback(
@@ -81,8 +100,8 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
   );
 
   const value = useMemo<Store>(
-    () => ({ ...data, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, moveTask }),
-    [data, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, moveTask],
+    () => ({ ...data, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
+    [data, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

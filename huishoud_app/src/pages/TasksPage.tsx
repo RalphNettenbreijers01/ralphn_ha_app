@@ -4,17 +4,19 @@ import { useStore } from '../store/AppContext';
 import FilterBar, { applyFilters, type Filters } from '../components/FilterBar';
 import TaskRow from '../components/TaskRow';
 import TaskModal from '../components/TaskModal';
-import { STATUS_LABELS, type Task, type TaskStatus } from '../types';
-import { todayISO } from '../lib/dates';
+import { STATUS_LABELS, type TaskInstance, type TaskStatus } from '../types';
+import { expandAll } from '../lib/recurrence';
+import { addDays, toISO, todayISO } from '../lib/dates';
 
 export default function TasksPage() {
   const { tasks } = useStore();
   const [filters, setFilters] = useState<Filters>({ userId: '', roomId: '' });
   const [status, setStatus] = useState<TaskStatus | ''>('');
   const [q, setQ] = useState('');
-  const [editing, setEditing] = useState<Partial<Task> | null>(null);
+  const [editing, setEditing] = useState<Partial<TaskInstance> | null>(null);
 
-  const list = applyFilters(tasks, filters)
+  // losse taken: allemaal; terugkerende taken: 30 dagen terug tot 90 dagen vooruit
+  const list = expandAll(applyFilters(tasks, filters), toISO(addDays(new Date(), -30)), toISO(addDays(new Date(), 90)), true)
     .filter((t) => !status || t.status === status)
     .filter((t) => !q || (t.title + ' ' + t.description).toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '99:99').localeCompare(b.time || '99:99'));
@@ -47,7 +49,7 @@ export default function TasksPage() {
       ) : (
         <ul className="space-y-2">
           {list.map((t) => (
-            <TaskRow key={t.id} task={t} onEdit={setEditing} showDate />
+            <TaskRow key={`${t.id}-${t.date}`} task={t} onEdit={setEditing} showDate />
           ))}
         </ul>
       )}

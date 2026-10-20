@@ -5,7 +5,8 @@ import FilterBar, { applyFilters, type Filters } from '../components/FilterBar';
 import TaskModal from '../components/TaskModal';
 import Avatar from '../components/Avatar';
 import { WEEKDAYS_SHORT, addDays, formatLong, formatMonth, monthGrid, toISO, todayISO, weekDays } from '../lib/dates';
-import type { Task } from '../types';
+import type { TaskInstance } from '../types';
+import { expandAll } from '../lib/recurrence';
 
 type View = 'month' | 'week';
 
@@ -14,21 +15,21 @@ export default function CalendarPage() {
   const [view, setView] = useState<View>('month');
   const [cursor, setCursor] = useState(() => new Date());
   const [filters, setFilters] = useState<Filters>({ userId: '', roomId: '' });
-  const [editing, setEditing] = useState<Partial<Task> | null>(null);
+  const [editing, setEditing] = useState<Partial<TaskInstance> | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
 
   const today = todayISO();
   const days = useMemo(() => (view === 'month' ? monthGrid(cursor) : weekDays(cursor)), [view, cursor]);
 
   const byDate = useMemo(() => {
-    const map = new Map<string, Task[]>();
-    for (const t of applyFilters(tasks, filters)) {
+    const map = new Map<string, TaskInstance[]>();
+    for (const t of expandAll(applyFilters(tasks, filters), toISO(days[0]), toISO(days[days.length - 1]))) {
       if (!map.has(t.date)) map.set(t.date, []);
       map.get(t.date)!.push(t);
     }
     map.forEach((l) => l.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99')));
     return map;
-  }, [tasks, filters]);
+  }, [tasks, filters, days]);
 
   const shift = (dir: -1 | 1) =>
     setCursor((c) =>
@@ -40,14 +41,14 @@ export default function CalendarPage() {
       ? formatMonth(cursor)
       : `${formatLong(days[0])} – ${formatLong(days[6])}`;
 
-  const chip = (t: Task) => {
+  const chip = (t: TaskInstance) => {
     const user = users.find((u) => u.id === t.userId);
     const room = rooms.find((r) => r.id === t.roomId);
     const color = user?.color ?? '#94a3b8';
     return (
       <button
-        key={t.id}
-        draggable
+        key={`${t.id}-${t.date}`}
+        draggable={!t.repeat}
         onDragStart={(e) => e.dataTransfer.setData('text/task-id', t.id)}
         onClick={() => setEditing(t)}
         title={`${t.title}${room ? ' · ' + room.name : ''}${user ? ' · ' + user.name : ''}`}
@@ -58,6 +59,7 @@ export default function CalendarPage() {
       >
         {user && <Avatar user={user} size={16} className="!shadow-none" />}
         <span className="truncate">
+          {t.repeat && '↻ '}
           {t.time && <span className="font-semibold">{t.time} </span>}
           {t.title}
         </span>
@@ -175,7 +177,7 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
-      <p className="text-xs text-muted">Tip: sleep een taak naar een andere dag om te herindelen.</p>
+      <p className="text-xs text-muted">Tip: sleep een taak naar een andere dag om te herindelen (niet mogelijk voor terugkerende taken: pas die aan via bewerken).</p>
 
       {editing && <TaskModal task={editing} onClose={() => setEditing(null)} />}
     </div>

@@ -5,21 +5,25 @@ import TaskRow from '../components/TaskRow';
 import TaskModal from '../components/TaskModal';
 import Avatar from '../components/Avatar';
 import { addDays, formatLong, toISO, todayISO } from '../lib/dates';
-import type { Task } from '../types';
+import type { TaskInstance } from '../types';
+import { expandAll } from '../lib/recurrence';
 
-const byTime = (a: Task, b: Task) => (a.time || '99:99').localeCompare(b.time || '99:99');
+const byTime = (a: TaskInstance, b: TaskInstance) => (a.time || '99:99').localeCompare(b.time || '99:99');
 
 export default function Dashboard() {
   const { tasks, users } = useStore();
-  const [editing, setEditing] = useState<Partial<Task> | null>(null);
+  const [editing, setEditing] = useState<Partial<TaskInstance> | null>(null);
 
   const today = todayISO();
-  const todays = tasks.filter((t) => t.date === today).sort(byTime);
+  const todays = expandAll(tasks, today, today).sort(byTime);
   const todayDone = todays.filter((t) => t.status === 'done').length;
-  const overdue = tasks.filter((t) => t.date < today && t.status !== 'done').sort((a, b) => a.date.localeCompare(b.date));
+  // terugkerende taken tellen maximaal 7 dagen terug mee als achterstallig
+  const overdue = expandAll(tasks, toISO(addDays(new Date(), -7)), toISO(addDays(new Date(), -1)), true)
+    .filter((t) => t.date < today && t.status !== 'done')
+    .sort((a, b) => a.date.localeCompare(b.date));
   const weekEnd = toISO(addDays(new Date(), 7));
-  const upcoming = tasks
-    .filter((t) => t.date > today && t.date <= weekEnd && t.status !== 'done')
+  const upcoming = expandAll(tasks, toISO(addDays(new Date(), 1)), weekEnd)
+    .filter((t) => t.status !== 'done')
     .sort((a, b) => a.date.localeCompare(b.date) || byTime(a, b));
   const pct = todays.length ? Math.round((todayDone / todays.length) * 100) : 0;
 
@@ -56,7 +60,7 @@ export default function Dashboard() {
             ) : (
               <ul className="space-y-2">
                 {todays.map((t) => (
-                  <TaskRow key={t.id} task={t} onEdit={setEditing} />
+                  <TaskRow key={`${t.id}-${t.date}`} task={t} onEdit={setEditing} />
                 ))}
               </ul>
             )}
@@ -91,7 +95,7 @@ export default function Dashboard() {
               </h2>
               <ul className="space-y-2">
                 {overdue.slice(0, 5).map((t) => (
-                  <TaskRow key={t.id} task={t} onEdit={setEditing} showDate />
+                  <TaskRow key={`${t.id}-${t.date}`} task={t} onEdit={setEditing} showDate />
                 ))}
               </ul>
             </section>
@@ -108,7 +112,7 @@ export default function Dashboard() {
         ) : (
           <ul className="grid gap-2 md:grid-cols-2">
             {upcoming.map((t) => (
-              <TaskRow key={t.id} task={t} onEdit={setEditing} showDate />
+              <TaskRow key={`${t.id}-${t.date}`} task={t} onEdit={setEditing} showDate />
             ))}
           </ul>
         )}
