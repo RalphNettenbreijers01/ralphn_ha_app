@@ -1,9 +1,23 @@
 /** @type {import('tailwindcss').Config} */
+const c = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      // Semantische kleuren, gevoed door het Home Assistant-thema (zie src/lib/haTheme.ts)
+      colors: {
+        primary: c('primary'),
+        fg: c('fg'),
+        muted: c('muted'),
+        card: c('card'),
+        app: c('app'),
+        line: c('line'),
+        danger: c('danger'),
+        ok: c('ok'),
+        warn: c('warn'),
+      },
+      fontFamily: { sans: ['var(--font-body)', 'Roboto', 'system-ui', 'sans-serif'] },
     },
   },
   plugins: [],

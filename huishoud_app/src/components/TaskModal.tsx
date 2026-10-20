@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2 } from './icons';
 import Modal from './Modal';
 import { useStore } from '../store/AppContext';
 import { STATUS_LABELS, type Task, type TaskStatus } from '../types';
@@ -98,7 +98,7 @@ export default function TaskModal({ task, onClose }: Props) {
                 key={s}
                 onClick={() => set('status', s)}
                 className={`flex-1 rounded-lg px-2 py-2 text-xs font-medium ring-1 transition sm:text-sm ${
-                  form.status === s ? 'bg-indigo-600 text-white ring-indigo-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
+                  form.status === s ? 'bg-primary text-white ring-primary' : 'bg-card text-muted ring-line hover:bg-fg/5'
                 }`}
               >
                 {STATUS_LABELS[s]}
@@ -108,7 +108,7 @@ export default function TaskModal({ task, onClose }: Props) {
         </div>
         <div className="flex items-center justify-between pt-2">
           {isEdit ? (
-            <button type="button" className="btn-ghost text-red-600 hover:!bg-red-50" onClick={remove}>
+            <button type="button" className="btn-ghost text-danger hover:!bg-danger/10" onClick={remove}>
               <Trash2 size={16} /> Verwijderen
             </button>
           ) : (

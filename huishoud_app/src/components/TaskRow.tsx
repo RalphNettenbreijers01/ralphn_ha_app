@@ -1,13 +1,13 @@
-import { Check, Clock, Pencil } from 'lucide-react';
+import { Check, Clock, Pencil } from '../components/icons';
 import Avatar from './Avatar';
 import { useStore } from '../store/AppContext';
 import { STATUS_LABELS, type Task } from '../types';
 import { formatShort } from '../lib/dates';
 
 export const STATUS_STYLES: Record<Task['status'], string> = {
-  open: 'bg-slate-100 text-slate-600',
-  in_progress: 'bg-amber-100 text-amber-700',
-  done: 'bg-emerald-100 text-emerald-700',
+  open: 'bg-fg/10 text-muted',
+  in_progress: 'bg-warn/15 text-warn',
+  done: 'bg-ok/15 text-ok',
 };
 
 interface Props {
@@ -23,20 +23,20 @@ export default function TaskRow({ task, onEdit, showDate }: Props) {
   const done = task.status === 'done';
 
   return (
-    <li className="flex items-center gap-3 rounded-xl p-3 ring-1 ring-slate-200 transition hover:bg-slate-50">
+    <li className="flex items-center gap-3 rounded-xl p-3 border border-line transition hover:bg-fg/5">
       <button
         onClick={() => setTaskStatus(task.id, done ? 'open' : 'done')}
         aria-label={done ? 'Markeer als open' : 'Markeer als voltooid'}
         title={done ? 'Terug naar open' : 'Afvinken'}
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
-          done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 text-transparent hover:border-emerald-500 hover:text-emerald-500'
+          done ? 'border-ok bg-ok text-white' : 'border-muted text-transparent hover:border-ok hover:text-ok'
         }`}
       >
         <Check size={16} strokeWidth={3} />
       </button>
       <div className="min-w-0 flex-1">
-        <p className={`truncate font-medium ${done ? 'text-slate-400 line-through' : ''}`}>{task.title}</p>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+        <p className={`truncate font-medium ${done ? 'text-muted line-through' : ''}`}>{task.title}</p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           {showDate && <span>{formatShort(task.date)}</span>}
           {task.time && (
             <span className="inline-flex items-center gap-1"><Clock size={12} /> {task.time}</span>

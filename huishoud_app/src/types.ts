@@ -6,6 +6,7 @@ export interface User {
   role: string;
   color: string; // hex
   avatar: string; // emoji, or data-URL for an uploaded image
+  notifyService?: string; // HA notify-service voor herinneringen, bijv. mobile_app_telefoon_ralph
 }
 
 export interface Room {

@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { ImagePlus, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ImagePlus, Pencil, Plus, Trash2 } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import Avatar, { isImageAvatar } from '../components/Avatar';
 import Modal from '../components/Modal';
@@ -12,6 +12,7 @@ function UserModal({ user, onClose }: { user: Partial<User> | null; onClose: () 
   const [role, setRole] = useState(user?.role ?? '');
   const [color, setColor] = useState(user?.color ?? USER_COLORS[users.length % USER_COLORS.length]);
   const [avatar, setAvatar] = useState(user?.avatar ?? EMOJI_AVATARS[0]);
+  const [notifyService, setNotifyService] = useState(user?.notifyService ?? '');
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -28,7 +29,7 @@ function UserModal({ user, onClose }: { user: Partial<User> | null; onClose: () 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    saveUser({ id: user?.id, name: name.trim(), role: role.trim(), color, avatar });
+    saveUser({ id: user?.id, name: name.trim(), role: role.trim(), color, avatar, notifyService: notifyService.trim().replace(/^notify\./, '') });
     onClose();
   };
 
@@ -49,6 +50,11 @@ function UserModal({ user, onClose }: { user: Partial<User> | null; onClose: () 
           <input id="u-role" className="input" placeholder="Bijv. Ouder, Kind, Huisgenoot" value={role} onChange={(e) => setRole(e.target.value)} />
         </div>
         <div>
+          <label className="label" htmlFor="u-notify">Meldingsservice Home Assistant (optioneel)</label>
+          <input id="u-notify" className="input" placeholder="mobile_app_jouw_telefoon" value={notifyService} onChange={(e) => setNotifyService(e.target.value)} />
+          <p className="mt-1 text-xs text-muted">Voor de dagelijkse taakherinnering. Zie Instellingen → Apparaten → Mobiele app voor de naam.</p>
+        </div>
+        <div>
           <span className="label">Kleur</span>
           <div className="flex flex-wrap items-center gap-2">
             {USER_COLORS.map((c) => (
@@ -57,7 +63,7 @@ function UserModal({ user, onClose }: { user: Partial<User> | null; onClose: () 
                 key={c}
                 onClick={() => setColor(c)}
                 aria-label={`Kleur ${c}`}
-                className={`h-8 w-8 rounded-full ring-offset-2 transition ${color === c ? 'ring-2 ring-slate-800' : ''}`}
+                className={`h-8 w-8 rounded-full ring-offset-2 transition ${color === c ? 'ring-2 ring-fg' : ''}`}
                 style={{ backgroundColor: c }}
               />
             ))}
@@ -73,7 +79,7 @@ function UserModal({ user, onClose }: { user: Partial<User> | null; onClose: () 
                 key={e}
                 onClick={() => setAvatar(e)}
                 className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ring-1 transition ${
-                  avatar === e ? 'bg-indigo-50 ring-2 ring-indigo-500' : 'ring-slate-200 hover:bg-slate-50'
+                  avatar === e ? 'bg-primary/10 ring-2 ring-primary' : 'ring-line hover:bg-fg/5'
                 }`}
               >
                 {e}
@@ -83,14 +89,14 @@ function UserModal({ user, onClose }: { user: Partial<User> | null; onClose: () 
               type="button"
               onClick={() => fileRef.current?.click()}
               className={`flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm ring-1 ${
-                isImageAvatar(avatar) ? 'bg-indigo-50 ring-2 ring-indigo-500' : 'ring-slate-200 hover:bg-slate-50'
+                isImageAvatar(avatar) ? 'bg-primary/10 ring-2 ring-primary' : 'ring-line hover:bg-fg/5'
               }`}
             >
               <ImagePlus size={16} /> Upload
             </button>
             <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
           </div>
-          {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+          {error && <p className="mt-1 text-xs text-danger">{error}</p>}
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose}>Annuleren</button>
@@ -121,7 +127,7 @@ export default function UsersPage() {
       </header>
 
       {users.length === 0 ? (
-        <div className="card py-12 text-center text-slate-500">
+        <div className="card py-12 text-center text-muted">
           Nog geen gebruikers. Voeg de eerste huisgenoot toe om taken toe te wijzen.
         </div>
       ) : (
@@ -134,12 +140,12 @@ export default function UsersPage() {
                 <Avatar user={u} size={56} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{u.name}</p>
-                  <p className="truncate text-sm text-slate-500">{u.role || 'Geen rol'}</p>
-                  <p className="mt-1 text-xs text-slate-500">{open} open · {mine.length} totaal</p>
+                  <p className="truncate text-sm text-muted">{u.role || 'Geen rol'}</p>
+                  <p className="mt-1 text-xs text-muted">{open} open · {mine.length} totaal</p>
                 </div>
                 <div className="flex flex-col gap-1">
                   <button className="btn-ghost !p-1.5" onClick={() => setEditing(u)} aria-label={`${u.name} bewerken`}><Pencil size={16} /></button>
-                  <button className="btn-ghost !p-1.5 text-red-600 hover:!bg-red-50" onClick={() => remove(u)} aria-label={`${u.name} verwijderen`}><Trash2 size={16} /></button>
+                  <button className="btn-ghost !p-1.5 text-danger hover:!bg-danger/10" onClick={() => remove(u)} aria-label={`${u.name} verwijderen`}><Trash2 size={16} /></button>
                 </div>
               </li>
             );

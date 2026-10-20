@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import FilterBar, { applyFilters, type Filters } from '../components/FilterBar';
 import TaskModal from '../components/TaskModal';
@@ -83,12 +83,12 @@ export default function CalendarPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <FilterBar value={filters} onChange={setFilters} />
-          <div className="flex rounded-lg bg-slate-200 p-0.5 text-sm">
+          <div className="flex rounded-lg bg-fg/10 p-0.5 text-sm">
             {(['month', 'week'] as View[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`rounded-md px-3 py-1.5 font-medium ${view === v ? 'bg-white shadow-sm' : 'text-slate-600'}`}
+                className={`rounded-md px-3 py-1.5 font-medium ${view === v ? 'bg-card shadow-sm' : 'text-muted'}`}
               >
                 {v === 'month' ? 'Maand' : 'Week'}
               </button>
@@ -99,7 +99,7 @@ export default function CalendarPage() {
 
       {/* legenda */}
       {users.length > 0 && (
-        <div className="flex flex-wrap gap-3 text-xs text-slate-600">
+        <div className="flex flex-wrap gap-3 text-xs text-muted">
           {users.map((u) => (
             <span key={u.id} className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: u.color }} /> {u.name}
@@ -109,8 +109,8 @@ export default function CalendarPage() {
       )}
 
       <div className="overflow-x-auto">
-        <div className="min-w-[720px] overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
-          <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="min-w-[720px] overflow-hidden rounded-2xl bg-card border border-line">
+          <div className="grid grid-cols-7 border-b border-line bg-fg/5 text-center text-xs font-semibold uppercase tracking-wide text-muted">
             {WEEKDAYS_SHORT.map((d) => (
               <div key={d} className="py-2">{d}</div>
             ))}
@@ -135,20 +135,20 @@ export default function CalendarPage() {
                     const id = e.dataTransfer.getData('text/task-id');
                     if (id) moveTask(id, iso);
                   }}
-                  className={`group border-b border-r border-slate-100 p-1.5 ${view === 'month' ? 'min-h-[110px]' : 'min-h-[320px]'} ${
-                    outside ? 'bg-slate-50/70 text-slate-400' : ''
-                  } ${dragOver === iso ? 'bg-indigo-50' : ''}`}
+                  className={`group border-b border-r border-line p-1.5 ${view === 'month' ? 'min-h-[110px]' : 'min-h-[320px]'} ${
+                    outside ? 'bg-fg/5 text-muted' : ''
+                  } ${dragOver === iso ? 'bg-primary/10' : ''}`}
                 >
                   <div className="mb-1 flex items-center justify-between">
                     <span
                       className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                        iso === today ? 'bg-indigo-600 text-white' : ''
+                        iso === today ? 'bg-primary text-white' : ''
                       }`}
                     >
                       {d.getDate()}
                     </span>
                     <button
-                      className="rounded p-0.5 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100"
+                      className="rounded p-0.5 text-muted opacity-0 hover:bg-fg/10 hover:text-fg focus:opacity-100 group-hover:opacity-100"
                       onClick={() => setEditing({ date: iso })}
                       aria-label={`Taak toevoegen op ${iso}`}
                     >
@@ -159,7 +159,7 @@ export default function CalendarPage() {
                     {list.slice(0, limit).map(chip)}
                     {list.length > limit && (
                       <button
-                        className="w-full text-left text-xs font-medium text-indigo-600 hover:underline"
+                        className="w-full text-left text-xs font-medium text-primary hover:underline"
                         onClick={() => {
                           setCursor(d);
                           setView('week');
@@ -175,7 +175,7 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
-      <p className="text-xs text-slate-500">Tip: sleep een taak naar een andere dag om te herindelen.</p>
+      <p className="text-xs text-muted">Tip: sleep een taak naar een andere dag om te herindelen.</p>
 
       {editing && <TaskModal task={editing} onClose={() => setEditing(null)} />}
     </div>

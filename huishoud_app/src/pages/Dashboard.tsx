@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CalendarClock, CheckCircle2, Plus, Sun } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, Plus, Sun } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import TaskRow from '../components/TaskRow';
 import TaskModal from '../components/TaskModal';
@@ -28,7 +28,7 @@ export default function Dashboard() {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm capitalize text-slate-500">{formatLong(new Date())}</p>
+          <p className="text-sm capitalize text-muted">{formatLong(new Date())}</p>
         </div>
         <button className="btn-primary" onClick={() => setEditing({ date: today })}>
           <Plus size={16} /> Nieuwe taak
@@ -37,20 +37,20 @@ export default function Dashboard() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Vandaag-widget */}
-        <section className="card lg:col-span-2 !bg-gradient-to-br from-indigo-600 to-violet-600 !p-0 text-white !ring-0">
+        <section className="card lg:col-span-2 !border-0 !bg-primary !p-0 text-white">
           <div className="p-5 pb-3">
             <div className="flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-semibold"><Sun size={20} /> Vandaag</h2>
-              <span className="text-sm text-indigo-100">{todayDone} van {todays.length} voltooid</span>
+              <span className="text-sm text-white/80">{todayDone} van {todays.length} voltooid</span>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/25">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/20">
               <div className="h-full rounded-full bg-white transition-all" style={{ width: `${pct}%` }} />
             </div>
           </div>
-          <div className="rounded-2xl bg-white p-4 text-slate-800">
+          <div className="rounded-xl bg-card p-4 text-fg">
             {todays.length === 0 ? (
-              <div className="py-8 text-center text-slate-500">
-                <CheckCircle2 className="mx-auto mb-2 text-emerald-500" size={32} />
+              <div className="py-8 text-center text-muted">
+                <CheckCircle2 className="mx-auto mb-2 text-ok" size={32} />
                 Geen taken voor vandaag. Geniet van de rust! 🎉
               </div>
             ) : (
@@ -65,9 +65,9 @@ export default function Dashboard() {
 
         <div className="space-y-6">
           <section className="card">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Huisgenoten</h2>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Huisgenoten</h2>
             {users.length === 0 ? (
-              <p className="text-sm text-slate-500">Voeg gebruikers toe onder “Gebruikers”.</p>
+              <p className="text-sm text-muted">Voeg gebruikers toe onder “Gebruikers”.</p>
             ) : (
               <ul className="space-y-2">
                 {users.map((u) => {
@@ -76,7 +76,7 @@ export default function Dashboard() {
                     <li key={u.id} className="flex items-center gap-3">
                       <Avatar user={u} size={32} />
                       <span className="flex-1 text-sm font-medium">{u.name}</span>
-                      <span className="text-xs text-slate-500">{open} open vandaag</span>
+                      <span className="text-xs text-muted">{open} open vandaag</span>
                     </li>
                   );
                 })}
@@ -85,8 +85,8 @@ export default function Dashboard() {
           </section>
 
           {overdue.length > 0 && (
-            <section className="card ring-red-200">
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-red-600">
+            <section className="card border-danger/40">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-danger">
                 <AlertTriangle size={16} /> Achterstallig ({overdue.length})
               </h2>
               <ul className="space-y-2">
@@ -100,11 +100,11 @@ export default function Dashboard() {
       </div>
 
       <section className="card">
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
           <CalendarClock size={16} /> Komende 7 dagen
         </h2>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-slate-500">Niets gepland in de komende week.</p>
+          <p className="text-sm text-muted">Niets gepland in de komende week.</p>
         ) : (
           <ul className="grid gap-2 md:grid-cols-2">
             {upcoming.map((t) => (

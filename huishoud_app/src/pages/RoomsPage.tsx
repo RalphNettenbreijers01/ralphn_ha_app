@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import Modal from '../components/Modal';
 import { ROOM_ICONS } from '../lib/storage';
@@ -33,7 +33,7 @@ function RoomModal({ room, onClose }: { room: Partial<Room>; onClose: () => void
                 key={i}
                 onClick={() => setIcon(i)}
                 className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ring-1 ${
-                  icon === i ? 'bg-indigo-50 ring-2 ring-indigo-500' : 'ring-slate-200 hover:bg-slate-50'
+                  icon === i ? 'bg-primary/10 ring-2 ring-primary' : 'ring-line hover:bg-fg/5'
                 }`}
               >
                 {i}
@@ -71,13 +71,13 @@ export default function RoomsPage() {
           const open = tasks.filter((t) => t.roomId === r.id && t.status !== 'done').length;
           return (
             <li key={r.id} className="card flex items-center gap-4">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-2xl">{r.icon}</span>
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-fg/10 text-2xl">{r.icon}</span>
               <div className="flex-1">
                 <p className="font-semibold">{r.name}</p>
-                <p className="text-xs text-slate-500">{open} open taken</p>
+                <p className="text-xs text-muted">{open} open taken</p>
               </div>
               <button className="btn-ghost !p-1.5" onClick={() => setEditing(r)} aria-label={`${r.name} bewerken`}><Pencil size={16} /></button>
-              <button className="btn-ghost !p-1.5 text-red-600 hover:!bg-red-50" onClick={() => remove(r)} aria-label={`${r.name} verwijderen`}><Trash2 size={16} /></button>
+              <button className="btn-ghost !p-1.5 text-danger hover:!bg-danger/10" onClick={() => remove(r)} aria-label={`${r.name} verwijderen`}><Trash2 size={16} /></button>
             </li>
           );
         })}

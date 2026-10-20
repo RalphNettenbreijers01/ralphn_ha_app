@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProvider } from './store/AppContext';
 import { fetchRemote, loadData } from './lib/storage';
+import { startHaTheme } from './lib/haTheme';
 import './index.css';
 
 async function start() {
@@ -21,4 +22,5 @@ async function start() {
   );
 }
 
+startHaTheme();
 start();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import FilterBar, { applyFilters, type Filters } from '../components/FilterBar';
 import TaskRow from '../components/TaskRow';
@@ -30,7 +30,7 @@ export default function TasksPage() {
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input className="input !w-56 !pl-9" placeholder="Zoeken…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         <FilterBar value={filters} onChange={setFilters} />
@@ -43,7 +43,7 @@ export default function TasksPage() {
       </div>
 
       {list.length === 0 ? (
-        <div className="card py-12 text-center text-slate-500">Geen taken gevonden.</div>
+        <div className="card py-12 text-center text-muted">Geen taken gevonden.</div>
       ) : (
         <ul className="space-y-2">
           {list.map((t) => (
