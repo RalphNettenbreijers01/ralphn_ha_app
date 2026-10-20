@@ -1,0 +1,17 @@
+name: Thuis - Huishoudbeheer
+version: "1.0.0"
+slug: huishoud_app
+description: Taken, kalender en dashboard voor het huishouden
+url: https://github.com/RalphNettenbreijers01/ralphn_ha_app
+arch:
+  - amd64
+  - aarch64
+  - armv7
+init: false
+startup: application
+boot: auto
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:home-heart
+panel_title: Huishouden
+panel_admin: false
