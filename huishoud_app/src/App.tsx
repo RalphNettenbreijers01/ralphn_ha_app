@@ -28,9 +28,9 @@ export default function App() {
   return (
     <div className="min-h-screen md:flex">
       {/* zijbalk (desktop) */}
-      <aside className="hidden w-56 shrink-0 border-r-2 border-line bg-fg/10 md:block">
+      <aside className="hidden w-56 shrink-0 border-r border-line bg-side md:block">
         <div className="sticky top-0 p-4">
-          <div className="mb-6 flex items-center gap-2 px-2 text-xl font-bold text-primary">
+          <div className="mb-6 flex items-center gap-2 px-2 text-xl font-bold text-fg">
             <span className="text-2xl">🏡</span> Huishouden
           </div>
           <nav className="space-y-1">
@@ -39,7 +39,7 @@ export default function App() {
                 key={rid}
                 href={`#/${rid}`}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  route.id === rid ? "bg-primary text-white shadow-sm" : "text-fg hover:bg-card"
+                  route.id === rid ? "bg-side-sel font-semibold text-side-sel-fg" : "text-fg hover:bg-fg/10"
                 }`}
               >
                 <Icon size={18} /> {label}

@@ -13,6 +13,9 @@
   --c-danger: 219 68 55;
   --c-ok: 67 160 71;
   --c-warn: 255 152 0;
+  --c-side: 240 240 240;
+  --c-side-sel: 222 241 252;
+  --c-side-sel-fg: var(--c-primary);
   --font-body: Roboto, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
@@ -22,6 +25,8 @@
     --c-card: 28 28 28;
     --c-app: 17 17 17;
     --c-line: 64 64 64;
+    --c-side: 38 38 38;
+    --c-side-sel: 20 56 74;
     color-scheme: dark;
   }
 }
