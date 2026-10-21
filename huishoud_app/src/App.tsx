@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Cart, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
+import { Bin, Cart, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
 import Dashboard from './pages/Dashboard';
 import CalendarPage from './pages/CalendarPage';
 import TasksPage from './pages/TasksPage';
 import UsersPage from './pages/UsersPage';
 import RoomsPage from './pages/RoomsPage';
 import NotesPage from './pages/NotesPage';
+import AfvalPage from './pages/AfvalPage';
 import ShoppingPage from './pages/ShoppingPage';
 
 const ROUTES = [
@@ -15,6 +16,7 @@ const ROUTES = [
   { id: 'boodschappen', label: 'Boodschappen', short: 'Winkel', icon: Cart, el: <ShoppingPage /> },
   { id: 'notities', label: 'Notities', icon: Note, el: <NotesPage /> },
   { id: 'gebruikers', label: 'Gebruikers', icon: Users, el: <UsersPage /> },
+  { id: 'afval', label: 'Afval', icon: Bin, el: <AfvalPage /> },
   { id: 'ruimtes', label: 'Ruimtes', icon: DoorOpen, el: <RoomsPage /> },
 ] as const;
 
@@ -58,12 +60,12 @@ export default function App() {
       </main>
 
       {/* onderste navigatie (mobiel) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-card md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-card md:hidden">
         {ROUTES.map(({ id: rid, label, icon: Icon, ...r }) => (
           <a
             key={rid}
             href={`#/${rid}`}
-            className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
+            className={`flex min-w-[60px] flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
               route.id === rid ? 'text-primary' : 'text-muted'
             }`}
           >

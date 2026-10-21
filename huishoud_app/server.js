@@ -251,6 +251,53 @@ async function sendDailyReminders() {
   }
 }
 
+// ---------- Afvalbeheer: ophaaldagen uit HA-entiteiten ----------
+
+const AFVAL_ENTITIES = (options.afval_entities ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+let afval = { configured: AFVAL_ENTITIES.length > 0, pickups: [], updatedAt: null, errors: [] };
+
+const DATE_RE = /(\d{4})-(\d{2})-(\d{2})|(\d{2})-(\d{2})-(\d{4})/g;
+const datesIn = (v) => [...String(v).matchAll(DATE_RE)].map((m) => (m[1] ? `${m[1]}-${m[2]}-${m[3]}` : `${m[6]}-${m[5]}-${m[4]}`));
+
+async function pickupsFromCalendar(id) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = addDays(start, 60);
+  const res = await ha('GET', `/calendars/${id}?start=${start.toISOString()}&end=${end.toISOString()}`);
+  const events = await res.json();
+  return events.map((e) => ({
+    type: String(e.summary ?? id).trim(),
+    date: e.start?.date ?? toISO(new Date(e.start?.dateTime)),
+  }));
+}
+
+async function pickupsFromSensor(id) {
+  const res = await ha('GET', `/states/${id}`);
+  const s = await res.json();
+  const today = todayISO();
+  // zoek datums in de status en in attributen (behalve "laatst bijgewerkt" e.d.); neem de eerstvolgende
+  const values = [s.state, ...Object.entries(s.attributes ?? {}).filter(([k]) => !/last|update|holiday|friendly/i.test(k)).map(([, v]) => v)];
+  const next = values.flatMap((v) => datesIn(typeof v === 'object' ? JSON.stringify(v) : v)).filter((d) => d >= today).sort()[0];
+  if (!next) throw new Error(`geen datum gevonden in ${id} (status: ${s.state})`);
+  const name = (s.attributes?.friendly_name ?? id.replace(/^sensor\./, '').replace(/_/g, ' ')).replace(/^afval\w*\s+/i, '').trim();
+  return [{ type: name || id, date: next }];
+}
+
+async function refreshAfval() {
+  if (!SUPERVISOR_TOKEN || !AFVAL_ENTITIES.length) return;
+  const pickups = new Map();
+  const errors = [];
+  for (const id of AFVAL_ENTITIES) {
+    try {
+      const list = id.startsWith('calendar.') ? await pickupsFromCalendar(id) : await pickupsFromSensor(id);
+      for (const p of list) if (p.date) pickups.set(`${p.type}|${p.date}`, p);
+    } catch (e) {
+      errors.push(`${id}: ${e.message}`);
+    }
+  }
+  afval = { configured: true, pickups: [...pickups.values()], updatedAt: new Date().toISOString(), errors };
+}
+
 // ---------- HTTP ----------
 
 function handleApi(req, res) {
@@ -313,7 +360,16 @@ http
   .createServer((req, res) => {
     try {
       const { pathname } = new URL(req.url, 'http://x');
-      if (pathname === '/api/data') handleApi(req, res);
+      if (pathname === '/api/afval') {
+        const refresh = new URL(req.url, 'http://x').searchParams.get('refresh');
+        (refresh ? refreshAfval() : Promise.resolve())
+          .catch(() => {})
+          .then(() => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store');
+            res.end(JSON.stringify(afval));
+          });
+      } else if (pathname === '/api/data') handleApi(req, res);
       else handleStatic(req, res);
     } catch {
       res.statusCode = 400;
@@ -324,5 +380,7 @@ http
 
 await initTimezone();
 publishStates();
+refreshAfval().catch((e) => console.warn('Afval ophalen mislukt:', e.message));
+setInterval(() => refreshAfval().catch(() => {}), 3 * 60 * 60 * 1000);
 setInterval(publishStates, 5 * 60 * 1000); // houdt sensoren actueel (datumwissel, HA-herstart)
 setInterval(() => sendDailyReminders().catch((e) => console.warn('Herinneringen mislukt:', e.message)), 30 * 1000);

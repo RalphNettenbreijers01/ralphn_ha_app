@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share prototype</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1c2230; --muted:#667085; --line:#e2e5ec; --accent:#2f6fed; --ok:#17803d; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151c; --card:#1b2029; --ink:#eef0f5; --muted:#9aa3b2; --line:#2b3240; --accent:#6c9bff; --ok:#4ade80; --bad:#f87171; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.4 system-ui, sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:16px; display:grid; gap:12px; }
+  h1 { font-size:1.25rem; margin:4px 0 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; gap:10px; }
+  label { display:grid; gap:4px; font-size:.85rem; color:var(--muted); }
+  input[type=text], textarea, select { width:100%; font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; }
+  textarea { min-height:70px; resize:vertical; }
+  .toggle { display:flex; align-items:center; gap:8px; color:var(--ink); font-size:1rem; }
+  .toggle input { width:20px; height:20px; }
+  .row { display:flex; gap:8px; }
+  .row > * { flex:1; }
+  button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:14px; background:var(--accent); color:#fff; }
+  button.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+  canvas { width:100%; height:auto; border-radius:8px; border:1px solid var(--line); }
+  .status { font-size:.9rem; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); }
+  pre { margin:0; font-size:.8rem; white-space:pre-wrap; word-break:break-word; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Share prototype</h1>
+
+  <div class="card">
+    <div id="support" class="status"></div>
+  </div>
+
+  <div class="card">
+    <label class="toggle"><input type="checkbox" id="useTitle" checked> Titel meesturen</label>
+    <input type="text" id="title" value="Boodschappenlijst">
+
+    <label class="toggle"><input type="checkbox" id="useText" checked> Tekst meesturen</label>
+    <textarea id="text">Dit moeten we halen vandaag 🛒</textarea>
+
+    <label class="toggle"><input type="checkbox" id="useUrl" checked> Link meesturen</label>
+    <input type="text" id="url" value="https://example.com/lijst/123">
+
+    <label class="toggle"><input type="checkbox" id="useFile" checked> Afbeelding meesturen</label>
+    <label>Afbeeldingstype
+      <select id="format">
+        <option value="image/png">PNG</option>
+        <option value="image/jpeg">JPEG</option>
+        <option value="image/webp">WebP</option>
+      </select>
+    </label>
+    <canvas id="canvas" width="800" height="500"></canvas>
+    <label>Of kies eigen afbeelding
+      <input type="file" id="picker" accept="image/*">
+    </label>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <button id="shareBtn">Delen</button>
+      <button id="copyBtn" class="secondary">Kopieer tekst</button>
+    </div>
+    <div id="result" class="status"></div>
+    <pre id="payload"></pre>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+let customImage = null;
+
+function drawCard() {
+  const w = canvas.width, h = canvas.height;
+  if (customImage) {
+    const r = Math.min(w / customImage.width, h / customImage.height);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(customImage, (w - customImage.width * r) / 2, (h - customImage.height * r) / 2,
+      customImage.width * r, customImage.height * r);
+    return;
+  }
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, '#2f6fed'); g.addColorStop(1, '#7a3fe0');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#fff';
+  ctx.font = '600 64px system-ui, sans-serif';
+  ctx.fillText($('title').value || 'Titel', 50, 140);
+  ctx.font = '36px system-ui, sans-serif';
+  ['• Melk', '• Brood', '• Tomaten', '• Koffie'].forEach((t, i) => ctx.fillText(t, 50, 240 + i * 60));
+}
+
+function toBlob(type) {
+  return new Promise(res => canvas.toBlob(res, type, 0.92));
+}
+
+async function buildData() {
+  const data = {};
+  if ($('useTitle').checked && $('title').value) data.title = $('title').value;
+  if ($('useText').checked && $('text').value) data.text = $('text').value;
+  if ($('useUrl').checked && $('url').value) data.url = $('url').value;
+  if ($('useFile').checked) {
+    const type = $('format').value;
+    const blob = await toBlob(type);
+    const ext = type.split('/')[1].replace('jpeg', 'jpg');
+    data.files = [new File([blob], `share.${ext}`, { type: blob.type })];
+  }
+  return data;
+}
+
+function describe(data) {
+  const copy = { ...data };
+  if (copy.files) copy.files = copy.files.map(f => `${f.name} (${f.type}, ${Math.round(f.size / 1024)} KB)`);
+  return JSON.stringify(copy, null, 2);
+}
+
+function say(msg, cls = '') { $('result').className = 'status ' + cls; $('result').textContent = msg; }
+
+// Eagerly keep a prepared payload so share() runs straight from the tap
+let prepared = null;
+async function prepare() { prepared = await buildData(); $('payload').textContent = describe(prepared); }
+document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', () => { drawCard(); prepare(); }));
+
+$('picker').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) { customImage = null; drawCard(); prepare(); return; }
+  const img = new Image();
+  img.onload = () => { customImage = img; drawCard(); prepare(); };
+  img.src = URL.createObjectURL(f);
+});
+
+$('shareBtn').addEventListener('click', async () => {
+  if (!prepared) await prepare();
+  if (!navigator.share) return say('navigator.share bestaat niet in deze browser/context.', 'bad');
+  const can = navigator.canShare ? navigator.canShare(prepared) : false;
+  if (prepared.files && !can) return say('canShare() = false voor deze combinatie (waarschijnlijk geen bestandsupport).', 'bad');
+  try {
+    await navigator.share(prepared);
+    say('Gedeeld (of share-sheet gesloten zonder fout).', 'ok');
+  } catch (err) {
+    say(err.name === 'AbortError' ? 'Geannuleerd door gebruiker.' : `${err.name}: ${err.message}`, err.name === 'AbortError' ? '' : 'bad');
+  }
+});
+
+$('copyBtn').addEventListener('click', async () => {
+  const parts = [$('text').value, $('url').value].filter(Boolean).join('\n');
+  try { await navigator.clipboard.writeText(parts); say('Tekst en link gekopieerd.', 'ok'); }
+  catch (e) { say('Kopiëren mislukt: ' + e.message, 'bad'); }
+});
+
+// Support report
+(function () {
+  const lines = [];
+  lines.push(window.isSecureContext ? '✔ Secure context (HTTPS)' : '✘ Geen HTTPS: share werkt niet');
+  lines.push('navigator.share: ' + (navigator.share ? '✔' : '✘'));
+  try {
+    const t = new File(['x'], 't.png', { type: 'image/png' });
+    lines.push('Bestanden delen (canShare): ' + (navigator.canShare && navigator.canShare({ files: [t] }) ? '✔' : '✘'));
+  } catch { lines.push('Bestanden delen (canShare): ✘'); }
+  $('support').innerHTML = lines.join('<br>');
+})();
+
+drawCard();
+prepare();
+</script>
+</body>
+</html>

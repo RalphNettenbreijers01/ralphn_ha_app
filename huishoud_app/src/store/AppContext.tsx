@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { AppData, Note, Room, ShoppingItem, Task, TaskStatus, User } from '../types';
-import { STORAGE_KEY, loadData, pushRemote, saveData, uid } from '../lib/storage';
+import type { AfvalType, AppData, Note, Room, ShoppingItem, Task, TaskStatus, User } from '../types';
+import { STORAGE_KEY, fetchAfval, loadData, pushRemote, saveData, uid } from '../lib/storage';
+import { todayISO } from '../lib/dates';
+import { applyTypeSettings, mergePickups, removeUpcoming, type Pickup } from '../lib/afval';
 
 type Draft<T extends { id: string }> = Omit<T, 'id'> & { id?: string };
 
@@ -20,6 +22,9 @@ interface Store extends AppData {
   toggleShoppingItem: (id: string) => void;
   deleteShoppingItem: (id: string) => void;
   clearDoneShopping: () => void;
+  syncAfval: (pickups: Pickup[]) => void;
+  setAfvalType: (type: string, patch: Partial<AfvalType>) => void;
+  setAfvalTime: (time: string) => void;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -73,7 +78,13 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
   );
   const saveTask = useCallback((t: Draft<Task>) => setData((d) => ({ ...d, tasks: upsert(d.tasks, t) })), []);
   const deleteTask = useCallback(
-    (id: string) => setData((d) => ({ ...d, tasks: d.tasks.filter((t) => t.id !== id) })),
+    (id: string) =>
+      setData((d) => {
+        const gone = d.tasks.find((t) => t.id === id);
+        // automatisch aangemaakte taken (afval) niet opnieuw aanmaken na verwijderen
+        const ignored = gone?.sourceKey ? [...d.afval.ignored, gone.sourceKey] : d.afval.ignored;
+        return { ...d, tasks: d.tasks.filter((t) => t.id !== id), afval: { ...d.afval, ignored } };
+      }),
     [],
   );
   const setTaskStatus = useCallback(
@@ -132,9 +143,49 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
     [],
   );
 
+  const syncAfval = useCallback((pickups: Pickup[]) => setData((d) => mergePickups(d, pickups)), []);
+  const setAfvalType = useCallback(
+    (type: string, patch: Partial<AfvalType>) =>
+      setData((d) => {
+        const cur = d.afval.types[type] ?? { enabled: true, userId: null, roomId: null };
+        const next = { ...d, afval: { ...d.afval, types: { ...d.afval.types, [type]: { ...cur, ...patch } } } };
+        if (patch.enabled === false) return removeUpcoming(next, type);
+        return applyTypeSettings(next, type);
+      }),
+    [],
+  );
+  const setAfvalTime = useCallback(
+    (time: string) =>
+      setData((d) => {
+        const today = todayISO();
+        return {
+          ...d,
+          afval: { ...d.afval, time },
+          tasks: d.tasks.map((t) => (t.sourceKey?.startsWith('afval:') && t.status !== 'done' && t.date >= today ? { ...t, time } : t)),
+        };
+      }),
+    [],
+  );
+
+  // Ophaaldagen (add-on haalt ze uit Home Assistant) omzetten in taken: bij opstarten en elk uur
+  useEffect(() => {
+    if (!remote) return;
+    let stop = false;
+    const run = async () => {
+      const info = await fetchAfval();
+      if (!stop && info?.pickups.length) syncAfval(info.pickups);
+    };
+    run();
+    const t = setInterval(run, 60 * 60 * 1000);
+    return () => {
+      stop = true;
+      clearInterval(t);
+    };
+  }, [remote, syncAfval]);
+
   const value = useMemo<Store>(
-    () => ({ ...data, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
-    [data, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
+    () => ({ ...data, syncAfval, setAfvalType, setAfvalTime, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
+    [data, syncAfval, setAfvalType, setAfvalTime, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

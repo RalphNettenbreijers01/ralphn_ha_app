@@ -1,4 +1,5 @@
 import type { AppData } from '../types';
+import type { AfvalInfo } from './afval';
 
 export const STORAGE_KEY = 'huishoud-app:v1';
 
@@ -45,6 +46,7 @@ const defaultData = (): AppData => ({
   notes: [],
   shopping: [],
   shoppingNames: [],
+  afval: { types: {}, time: '18:00', ignored: [] },
 });
 
 const normalize = (p: Partial<AppData>): AppData => ({
@@ -54,6 +56,7 @@ const normalize = (p: Partial<AppData>): AppData => ({
   notes: p.notes ?? [],
   shopping: p.shopping ?? [],
   shoppingNames: p.shoppingNames ?? [],
+  afval: { types: {}, time: '18:00', ignored: [], ...p.afval },
 });
 
 function loadLocal(): AppData | null {
@@ -79,6 +82,16 @@ export async function fetchRemote(): Promise<AppData | null | undefined> {
     if (!res.ok || !(res.headers.get('content-type') ?? '').includes('application/json')) return undefined;
     const json = await res.json();
     return json && typeof json === 'object' && 'tasks' in json ? normalize(json) : null;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function fetchAfval(refresh = false): Promise<AfvalInfo | undefined> {
+  try {
+    const res = await fetch(refresh ? 'api/afval?refresh=1' : 'api/afval', { cache: 'no-store' });
+    if (!res.ok || !(res.headers.get('content-type') ?? '').includes('application/json')) return undefined;
+    return (await res.json()) as AfvalInfo;
   } catch {
     return undefined;
   }

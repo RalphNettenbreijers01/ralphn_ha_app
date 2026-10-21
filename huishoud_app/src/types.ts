@@ -35,6 +35,7 @@ export interface Task {
   repeat?: Repeat; // terugkerende taak: 'date' is de startdatum
   skipped?: string[]; // overgeslagen voorkomens (datums)
   occStatus?: Record<string, TaskStatus>; // status per voorkomen (datum), alleen bij terugkerende taken
+  sourceKey?: string; // automatisch aangemaakt (bijv. afvalophaling): 'afval:<soort>|<ophaaldag>'
 }
 
 /** Eén voorkomen van een taak; bij terugkerende taken is 'date' de datum van dit voorkomen. */
@@ -58,6 +59,18 @@ export interface ShoppingItem {
   createdAt: number;
 }
 
+export interface AfvalType {
+  enabled: boolean;
+  userId: string | null;
+  roomId: string | null;
+}
+
+export interface AfvalSettings {
+  types: Record<string, AfvalType>; // per containersoort
+  time: string; // tijdstip van de taak op de avond voor de ophaaldag
+  ignored: string[]; // sourceKeys van taken die de gebruiker verwijderde
+}
+
 export interface AppData {
   users: User[];
   rooms: Room[];
@@ -65,6 +78,7 @@ export interface AppData {
   notes: Note[];
   shopping: ShoppingItem[];
   shoppingNames: string[]; // eerder gebruikte productnamen, voor suggesties
+  afval: AfvalSettings;
 }
 
 export const STATUS_LABELS: Record<TaskStatus, string> = {

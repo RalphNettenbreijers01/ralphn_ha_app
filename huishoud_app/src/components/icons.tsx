@@ -18,6 +18,7 @@ import {
   mdiPencil,
   mdiPlus,
   mdiRepeat,
+  mdiTrashCanOutline,
   mdiCartOutline,
   mdiNoteTextOutline,
   mdiPin,
@@ -60,6 +61,7 @@ export const Cart = make(mdiCartOutline);
 export const Note = make(mdiNoteTextOutline);
 export const Pin = make(mdiPin);
 export const PinOutline = make(mdiPinOutline);
+export const Bin = make(mdiTrashCanOutline);
 export const Search = make(mdiMagnify);
 export const Sun = make(mdiWhiteBalanceSunny);
 export const Trash2 = make(mdiDelete);

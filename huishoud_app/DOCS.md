@@ -40,3 +40,12 @@ Pagina "Notities": gekleurde post-its met optioneel een afzender. Pin een notiti
 ## Boodschappenlijst
 
 Pagina "Boodschappen": producten toevoegen met hoeveelheid en categorie (gegroepeerd per afdeling), afvinken in de winkel en "Voltooide verwijderen" om op te ruimen. Eerder gebruikte producten komen als suggestie terug, met hun laatste categorie. Op het dashboard staat een compact overzicht. Sensor: `sensor.huishoud_boodschappen` (aantal producten; attribuut `producten`).
+
+## Afvalophaling (Afvalbeheer)
+
+Vul in de opties van de add-on `afval_entities` in met de entiteiten van de Afvalbeheer-integratie, gescheiden door komma's (bijv. `calendar.afvalbeheer` of `sensor.afvalbeheer_gft, sensor.afvalbeheer_restafval`; zie Ontwikkelaarstools → Statussen). Start de add-on daarna opnieuw.
+
+- Voor elke ophaaldag maakt de app een taak "<soort> buiten zetten" op de **avond ervoor** (standaard 18:00, instelbaar).
+- Op de pagina "Afval" koppel je per containersoort een gebruiker (en eventueel ruimte) of zet je een soort uit.
+- Kalenderentiteiten werken het betrouwbaarst. Bij sensoren zoekt de add-on naar een datum in de status of attributen; lukt dat niet, dan staat er een melding op de pagina "Afval".
+- Verwijder je zo'n taak zelf, dan komt hij niet terug.
