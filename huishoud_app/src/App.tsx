@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, DoorOpen, Home, ListChecks, Users } from './components/icons';
+import { Cart, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
 import Dashboard from './pages/Dashboard';
 import CalendarPage from './pages/CalendarPage';
 import TasksPage from './pages/TasksPage';
 import UsersPage from './pages/UsersPage';
 import RoomsPage from './pages/RoomsPage';
+import NotesPage from './pages/NotesPage';
+import ShoppingPage from './pages/ShoppingPage';
 
 const ROUTES = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, el: <Dashboard /> },
   { id: 'kalender', label: 'Kalender', icon: CalendarDays, el: <CalendarPage /> },
   { id: 'taken', label: 'Taken', icon: ListChecks, el: <TasksPage /> },
+  { id: 'boodschappen', label: 'Boodschappen', short: 'Winkel', icon: Cart, el: <ShoppingPage /> },
+  { id: 'notities', label: 'Notities', icon: Note, el: <NotesPage /> },
   { id: 'gebruikers', label: 'Gebruikers', icon: Users, el: <UsersPage /> },
   { id: 'ruimtes', label: 'Ruimtes', icon: DoorOpen, el: <RoomsPage /> },
 ] as const;
@@ -55,15 +59,15 @@ export default function App() {
 
       {/* onderste navigatie (mobiel) */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-card md:hidden">
-        {ROUTES.map(({ id: rid, label, icon: Icon }) => (
+        {ROUTES.map(({ id: rid, label, icon: Icon, ...r }) => (
           <a
             key={rid}
             href={`#/${rid}`}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${
+            className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
               route.id === rid ? 'text-primary' : 'text-muted'
             }`}
           >
-            <Icon size={20} /> {label}
+            <Icon size={20} /> <span className="max-w-full truncate">{'short' in r ? r.short : label}</span>
           </a>
         ))}
       </nav>

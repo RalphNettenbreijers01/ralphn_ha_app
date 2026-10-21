@@ -18,6 +18,10 @@ import {
   mdiPencil,
   mdiPlus,
   mdiRepeat,
+  mdiCartOutline,
+  mdiNoteTextOutline,
+  mdiPin,
+  mdiPinOutline,
   mdiWhiteBalanceSunny,
 } from '@mdi/js';
 
@@ -52,6 +56,10 @@ export const ListChecks = make(mdiFormatListChecks);
 export const Pencil = make(mdiPencil);
 export const Plus = make(mdiPlus);
 export const RepeatIcon = make(mdiRepeat);
+export const Cart = make(mdiCartOutline);
+export const Note = make(mdiNoteTextOutline);
+export const Pin = make(mdiPin);
+export const PinOutline = make(mdiPinOutline);
 export const Search = make(mdiMagnify);
 export const Sun = make(mdiWhiteBalanceSunny);
 export const Trash2 = make(mdiDelete);

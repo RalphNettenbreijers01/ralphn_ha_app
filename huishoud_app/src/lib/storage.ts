@@ -9,6 +9,27 @@ export const USER_COLORS = ['#6366f1', '#ec4899', '#f97316', '#10b981', '#06b6d4
 export const EMOJI_AVATARS = [
   '👩', '👨', '🧒', '👧', '👦', '👵', '👴', '🧑‍🍳', '🦸', '🧙', '🐱', '🐶', '🦊', '🐼', '🦉', '🤖',
 ];
+export const NOTE_COLORS: Record<string, string> = {
+  yellow: '#fff59d',
+  pink: '#f8bbd0',
+  blue: '#b3e5fc',
+  green: '#c8e6c9',
+  orange: '#ffe0b2',
+  purple: '#e1bee7',
+};
+
+export const SHOPPING_CATEGORIES: Record<string, { label: string; icon: string }> = {
+  produce: { label: 'Groente & fruit', icon: '🥦' },
+  dairy: { label: 'Zuivel & eieren', icon: '🥛' },
+  bakery: { label: 'Brood & gebak', icon: '🥖' },
+  meat: { label: 'Vlees & vis', icon: '🍗' },
+  pantry: { label: 'Houdbaar', icon: '🥫' },
+  drinks: { label: 'Drinken', icon: '🧃' },
+  frozen: { label: 'Diepvries', icon: '🧊' },
+  household: { label: 'Huishouden & verzorging', icon: '🧻' },
+  other: { label: 'Overig', icon: '🛒' },
+};
+
 export const ROOM_ICONS = ['🍳', '🛋️', '🛁', '🌳', '🛏️', '🚗', '🧺', '💻', '🚪', '📦'];
 
 const defaultData = (): AppData => ({
@@ -21,12 +42,18 @@ const defaultData = (): AppData => ({
     { id: uid(), name: 'Slaapkamer', icon: '🛏️' },
   ],
   tasks: [],
+  notes: [],
+  shopping: [],
+  shoppingNames: [],
 });
 
 const normalize = (p: Partial<AppData>): AppData => ({
   users: p.users ?? [],
   rooms: p.rooms ?? [],
   tasks: p.tasks ?? [],
+  notes: p.notes ?? [],
+  shopping: p.shopping ?? [],
+  shoppingNames: p.shoppingNames ?? [],
 });
 
 function loadLocal(): AppData | null {

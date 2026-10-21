@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { AppData, Room, Task, TaskStatus, User } from '../types';
+import type { AppData, Note, Room, ShoppingItem, Task, TaskStatus, User } from '../types';
 import { STORAGE_KEY, loadData, pushRemote, saveData, uid } from '../lib/storage';
 
 type Draft<T extends { id: string }> = Omit<T, 'id'> & { id?: string };
@@ -14,6 +14,12 @@ interface Store extends AppData {
   setTaskStatus: (id: string, status: TaskStatus, occurrence?: string) => void;
   skipOccurrence: (id: string, date: string) => void;
   moveTask: (id: string, date: string) => void;
+  saveNote: (n: Draft<Note>) => void;
+  deleteNote: (id: string) => void;
+  saveShoppingItem: (i: Draft<ShoppingItem>) => void;
+  toggleShoppingItem: (id: string) => void;
+  deleteShoppingItem: (id: string) => void;
+  clearDoneShopping: () => void;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -99,9 +105,36 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
     [],
   );
 
+  const saveNote = useCallback((n: Draft<Note>) => setData((d) => ({ ...d, notes: upsert(d.notes, n) })), []);
+  const deleteNote = useCallback((id: string) => setData((d) => ({ ...d, notes: d.notes.filter((n) => n.id !== id) })), []);
+  const saveShoppingItem = useCallback(
+    (i: Draft<ShoppingItem>) =>
+      setData((d) => {
+        const key = i.name.trim().toLowerCase();
+        const names = d.shoppingNames.some((n) => n.toLowerCase() === key)
+          ? d.shoppingNames
+          : [i.name.trim(), ...d.shoppingNames].slice(0, 200);
+        return { ...d, shopping: upsert(d.shopping, i), shoppingNames: names };
+      }),
+    [],
+  );
+  const toggleShoppingItem = useCallback(
+    (id: string) =>
+      setData((d) => ({ ...d, shopping: d.shopping.map((i) => (i.id === id ? { ...i, done: !i.done } : i)) })),
+    [],
+  );
+  const deleteShoppingItem = useCallback(
+    (id: string) => setData((d) => ({ ...d, shopping: d.shopping.filter((i) => i.id !== id) })),
+    [],
+  );
+  const clearDoneShopping = useCallback(
+    () => setData((d) => ({ ...d, shopping: d.shopping.filter((i) => !i.done) })),
+    [],
+  );
+
   const value = useMemo<Store>(
-    () => ({ ...data, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
-    [data, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
+    () => ({ ...data, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
+    [data, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

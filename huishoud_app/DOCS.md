@@ -32,3 +32,11 @@ Per gebruiker kun je in de app een eigen meldingsservice instellen. Elke gebruik
 ## Terugkerende taken
 
 Kies bij een taak onder "Herhalen": dagelijks, wekelijks, om de 2 weken, elke 4 weken, maandelijks, jaarlijks of aangepast (elke N dagen/weken/maanden/jaren), eventueel met einddatum. Status (afvinken) geldt per voorkomen; "Deze keer overslaan" slaat één voorkomen over. Wijzigen of verwijderen geldt voor de hele reeks. Maandelijkse taken op de 29e-31e vallen in kortere maanden op de laatste dag. Terugkerende taken worden ook meegenomen in de sensoren en meldingen.
+
+## Notities (post-its)
+
+Pagina "Notities": gekleurde post-its met optioneel een afzender. Pin een notitie vast (speldicoon) om hem op het dashboard onder "Prikbord" te tonen.
+
+## Boodschappenlijst
+
+Pagina "Boodschappen": producten toevoegen met hoeveelheid en categorie (gegroepeerd per afdeling), afvinken in de winkel en "Voltooide verwijderen" om op te ruimen. Eerder gebruikte producten komen als suggestie terug, met hun laatste categorie. Op het dashboard staat een compact overzicht. Sensor: `sensor.huishoud_boodschappen` (aantal producten; attribuut `producten`).

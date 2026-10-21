@@ -170,6 +170,16 @@ async function publishStates() {
       },
     },
   };
+  const toBuy = (data.shopping ?? []).filter((i) => !i.done);
+  states['sensor.huishoud_boodschappen'] = {
+    state: toBuy.length,
+    attributes: {
+      friendly_name: 'Huishouden: boodschappen',
+      icon: 'mdi:cart-outline',
+      unit_of_measurement: 'producten',
+      producten: toBuy.map((i) => (i.quantity ? `${i.quantity} ${i.name}` : i.name)),
+    },
+  };
   for (const u of data.users ?? []) {
     const mine = open.filter((t) => t.userId === u.id);
     states[`sensor.huishoud_${slug(u.name)}_open_vandaag`] = {

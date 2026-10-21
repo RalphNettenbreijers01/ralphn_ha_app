@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { AlertTriangle, CalendarClock, CheckCircle2, Plus, Sun } from '../components/icons';
+import { AlertTriangle, CalendarClock, Cart, CheckCircle2, Check, Note, Plus, Sun } from '../components/icons';
+import StickyNote from '../components/StickyNote';
 import { useStore } from '../store/AppContext';
 import TaskRow from '../components/TaskRow';
 import TaskModal from '../components/TaskModal';
@@ -11,7 +12,9 @@ import { expandAll } from '../lib/recurrence';
 const byTime = (a: TaskInstance, b: TaskInstance) => (a.time || '99:99').localeCompare(b.time || '99:99');
 
 export default function Dashboard() {
-  const { tasks, users } = useStore();
+  const { tasks, users, notes, shopping, toggleShoppingItem } = useStore();
+  const toBuy = shopping.filter((i) => !i.done);
+  const pinned = notes.filter((n) => n.pinned).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
   const [editing, setEditing] = useState<Partial<TaskInstance> | null>(null);
 
   const today = todayISO();
@@ -101,6 +104,54 @@ export default function Dashboard() {
             </section>
           )}
         </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <section className="card">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              <Cart size={16} /> Boodschappen ({toBuy.length})
+            </h2>
+            <a href="#/boodschappen" className="text-sm text-primary hover:underline">Alles bekijken</a>
+          </div>
+          {toBuy.length === 0 ? (
+            <p className="text-sm text-muted">Niets op de lijst.</p>
+          ) : (
+            <ul className="space-y-1">
+              {toBuy.slice(0, 6).map((i) => (
+                <li key={i.id} className="flex items-center gap-3">
+                  <button
+                    onClick={() => toggleShoppingItem(i.id)}
+                    aria-label={`${i.name} afvinken`}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-muted text-transparent hover:border-ok hover:text-ok"
+                  >
+                    <Check size={14} />
+                  </button>
+                  <span className="truncate">{i.name}{i.quantity && <span className="ml-2 text-sm text-muted">{i.quantity}</span>}</span>
+                </li>
+              ))}
+              {toBuy.length > 6 && <li className="text-sm text-muted">+{toBuy.length - 6} meer…</li>}
+            </ul>
+          )}
+        </section>
+
+        <section className="card">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              <Note size={16} /> Prikbord
+            </h2>
+            <a href="#/notities" className="text-sm text-primary hover:underline">Alle notities</a>
+          </div>
+          {pinned.length === 0 ? (
+            <p className="text-sm text-muted">Pin een notitie vast om hem hier te tonen.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 p-1">
+              {pinned.map((n) => (
+                <StickyNote key={n.id} note={n} compact />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       <section className="card">
