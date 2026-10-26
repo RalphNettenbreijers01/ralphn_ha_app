@@ -11,7 +11,7 @@ async function start() {
   // Zonder backend (dev): alleen LocalStorage.
   const remoteData = await fetchRemote();
   const remote = remoteData !== undefined;
-  const initial = remoteData ?? loadData(); // eerste keer: bestaande lokale data migreert naar de server
+  const initial = (remoteData === 'unchanged' ? null : remoteData) ?? loadData(); // eerste keer: bestaande lokale data migreert naar de server
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

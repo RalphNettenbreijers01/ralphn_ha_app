@@ -1,6 +1,5 @@
 import type { AppData, Task } from '../types';
 import { addDays, formatLong, parseISO, toISO, todayISO } from './dates';
-import { uid } from './storage';
 
 export interface Pickup {
   type: string; // bijv. "GFT", "Restafval"
@@ -37,7 +36,7 @@ export function mergePickups(data: AppData, pickups: Pickup[]): AppData {
     if (!cfg.enabled || known.has(key) || ignored.has(key) || taskDate < today) continue;
     known.add(key);
     created.push({
-      id: uid(),
+      id: key, // deterministisch: twee apparaten maken zo nooit dubbele taken
       title: `${p.type} buiten zetten`,
       description: `Ophaaldag: ${formatLong(parseISO(p.date))}`,
       userId: cfg.userId,

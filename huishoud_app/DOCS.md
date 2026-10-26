@@ -49,3 +49,18 @@ Vul in de opties van de add-on `afval_entities` in met de entiteiten van de Afva
 - Op de pagina "Afval" koppel je per containersoort een gebruiker (en eventueel ruimte) of zet je een soort uit.
 - Kalenderentiteiten werken het betrouwbaarst. Bij sensoren zoekt de add-on naar een datum in de status of attributen; lukt dat niet, dan staat er een melding op de pagina "Afval".
 - Verwijder je zo'n taak zelf, dan komt hij niet terug.
+
+## Samen gebruiken (meerdere apparaten)
+
+Alle apparaten delen dezelfde data op de server. Wijzigingen van anderen verschijnen binnen ongeveer 3 seconden (en direct bij terugkeren naar de app). Wijzigingen worden per item samengevoegd: als twee mensen tegelijk verschillende producten afvinken, blijven beide wijzigingen behouden. Wijzigen twee mensen precies hetzelfde item tegelijk, dan wint de laatste.
+
+## Maaltijden (weekmenu)
+
+Pagina "Maaltijden": plan per dag het avondeten, met wie er kookt en de ingrediënten. Kies je een eerder gerecht uit de suggesties, dan worden de ingrediënten overgenomen. "Naar lijst" (per maaltijd) en "Week naar boodschappenlijst" zetten ingrediënten op de boodschappenlijst, zonder dubbelen van wat er al open staat. Sensor: `sensor.huishoud_avondeten_vandaag` (attributen `kok`, `ingredienten`).
+
+## Punten, beloningen en badges
+
+- Elke taak levert punten op (standaard 10, instelbaar per taak). Rond je een taak af, dan krijgt de toegewezen gebruiker de punten; open je de taak weer, dan gaan ze terug. Verwijderde taken laten verdiende punten met rust. Elke 100 verdiende punten is een level.
+- Beloningen maak je zelf aan (naam, icoon, kosten) en wissel je in met punten. Bonuspunten kun je handmatig geven.
+- Badges (18) worden automatisch behaald en nooit ingetrokken: aantal taken, punten, dagen op rij, vroeg/laat, afval, specialist per ruimte, koken volgens het weekmenu en een eerste beloning. Een nieuwe badge verschijnt als melding, ook op andere apparaten.
+- Sensoren: `sensor.huishoud_<naam>_punten` (attribuut `badges`).

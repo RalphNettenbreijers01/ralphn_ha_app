@@ -52,6 +52,7 @@ export default function TaskModal({ task, onClose }: Props) {
     date: src?.date ?? todayISO(),
     time: src?.time ?? '',
     status: (task?.status ?? 'open') as TaskStatus,
+    points: src?.points ?? 10,
     preset: presetOf(src?.repeat),
     interval: src?.repeat?.interval ?? 1,
     unit: (src?.repeat?.unit ?? 'week') as RepeatUnit,
@@ -80,6 +81,7 @@ export default function TaskModal({ task, onClose }: Props) {
       roomId: form.roomId || null,
       date: form.date,
       time: form.time,
+      points: Math.max(0, Math.min(1000, Math.floor(form.points) || 0)),
       status: repeat ? 'open' : form.status,
       repeat: repeat ? { ...repeat, ...(form.until ? { until: form.until } : {}) } : undefined,
       occStatus: repeat ? occStatus : undefined,
@@ -141,6 +143,23 @@ export default function TaskModal({ task, onClose }: Props) {
             <label className="label" htmlFor="t-time">Tijd (optioneel)</label>
             <input id="t-time" type="time" className="input" value={form.time} onChange={(e) => set('time', e.target.value)} />
           </div>
+        </div>
+        <div>
+          <label className="label" htmlFor="t-points">Punten bij afronden</label>
+          <div className="flex items-center gap-2">
+            {[5, 10, 20, 50].map((p) => (
+              <button
+                type="button"
+                key={p}
+                onClick={() => set('points', p)}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ${form.points === p ? 'bg-primary text-white ring-primary' : 'bg-card text-muted ring-line hover:bg-fg/5'}`}
+              >
+                {p}
+              </button>
+            ))}
+            <input id="t-points" type="number" min={0} max={1000} className="input !w-24" value={form.points} onChange={(e) => set('points', Number(e.target.value))} />
+          </div>
+          <p className="mt-1 text-xs text-muted">De toegewezen gebruiker krijgt deze punten zodra de taak is afgerond.</p>
         </div>
         <div className="space-y-2">
           <label className="label" htmlFor="t-repeat">Herhalen</label>

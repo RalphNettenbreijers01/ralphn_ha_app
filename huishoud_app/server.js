@@ -6,6 +6,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { mergeData } from './merge.js';
 
 const PORT = Number(process.env.PORT ?? 8099);
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
@@ -170,6 +171,30 @@ async function publishStates() {
       },
     },
   };
+  const meals = data.meals ?? [];
+  const mealToday = meals.find((m) => m.date === todayISO());
+  const cook = data.users?.find((u) => u.id === mealToday?.cookId);
+  states['sensor.huishoud_avondeten_vandaag'] = {
+    state: mealToday?.title ?? 'Niets gepland',
+    attributes: {
+      friendly_name: 'Huishouden: avondeten vandaag',
+      icon: 'mdi:silverware-fork-knife',
+      kok: cook?.name ?? null,
+      ingredienten: (mealToday?.ingredients ?? []).map((i) => (i.quantity ? `${i.quantity} ${i.name}` : i.name)),
+    },
+  };
+  for (const u of data.users ?? []) {
+    const pts = (data.points ?? []).filter((e) => e.userId === u.id).reduce((s, e) => s + e.points, 0);
+    states[`sensor.huishoud_${slug(u.name)}_punten`] = {
+      state: pts,
+      attributes: {
+        friendly_name: `Huishouden: punten ${u.name}`,
+        icon: 'mdi:star-circle-outline',
+        unit_of_measurement: 'punten',
+        badges: (data.badges ?? []).filter((b) => b.userId === u.id).length,
+      },
+    };
+  }
   const toBuy = (data.shopping ?? []).filter((i) => !i.done);
   states['sensor.huishoud_boodschappen'] = {
     state: toBuy.length,
@@ -305,12 +330,12 @@ function handleApi(req, res) {
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'GET') {
-    try {
-      res.end(fs.readFileSync(DATA_FILE));
-    } catch {
-      res.end('{}'); // nog geen data
-    }
-    return;
+    const data = readJson(DATA_FILE, null);
+    if (!data) return res.end(JSON.stringify({ serverNow: Date.now() })); // nog geen data
+    const since = new URL(req.url, 'http://x').searchParams.get('rev');
+    // clients pollen met hun laatst geziene versie: niets nieuws = klein antwoord
+    if (since !== null && Number(since) === data.rev) return res.end(JSON.stringify({ unchanged: true, rev: data.rev, serverNow: Date.now() }));
+    return res.end(JSON.stringify({ ...data, serverNow: Date.now() }));
   }
 
   if (req.method === 'PUT') {
@@ -330,9 +355,15 @@ function handleApi(req, res) {
         const body = Buffer.concat(chunks).toString('utf8');
         const parsed = JSON.parse(body);
         if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.tasks)) throw new Error('ongeldig');
-        writeJsonAtomic(DATA_FILE, body);
-        res.end('{"ok":true}');
-        schedulePublish();
+        // samenvoegen met wat er al staat (andere apparaten), per record de nieuwste wijziging
+        const current = readJson(DATA_FILE, {});
+        const merged = mergeData(current, parsed);
+        const strip = (d) => JSON.stringify({ ...d, rev: undefined, serverNow: undefined });
+        const changed = strip(merged) !== strip(current);
+        merged.rev = (current.rev ?? 0) + (changed ? 1 : 0);
+        if (changed || current.rev === undefined) writeJsonAtomic(DATA_FILE, JSON.stringify(merged));
+        res.end(JSON.stringify({ ...merged, serverNow: Date.now() }));
+        if (changed) schedulePublish();
       } catch {
         res.statusCode = 400;
         res.end('{"error":"ongeldige data"}');

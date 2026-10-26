@@ -1,8 +1,9 @@
-import { Check, Clock, Pencil, RepeatIcon } from '../components/icons';
+import { Check, Clock, Pencil, RepeatIcon, Star } from '../components/icons';
 import Avatar from './Avatar';
 import { useStore } from '../store/AppContext';
 import { STATUS_LABELS, type Task, type TaskInstance } from '../types';
 import { describeRepeat } from '../lib/recurrence';
+import { taskPoints } from '../lib/points';
 import { formatShort } from '../lib/dates';
 
 export const STATUS_STYLES: Record<Task['status'], string> = {
@@ -43,6 +44,9 @@ export default function TaskRow({ task, onEdit, showDate }: Props) {
             <span className="inline-flex items-center gap-1"><Clock size={12} /> {task.time}</span>
           )}
           {room && <span>{room.icon} {room.name}</span>}
+          {user && taskPoints(task) > 0 && (
+            <span className="inline-flex items-center gap-1" title="Punten bij afronden"><Star size={12} /> {taskPoints(task)}</span>
+          )}
           {task.repeat && (
             <span className="inline-flex items-center gap-1" title={describeRepeat(task.repeat)}>
               <RepeatIcon size={12} /> {describeRepeat(task.repeat)}

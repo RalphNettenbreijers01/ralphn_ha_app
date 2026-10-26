@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CalendarClock, Cart, CheckCircle2, Check, Note, Plus, Sun } from '../components/icons';
+import { AlertTriangle, CalendarClock, Cart, CheckCircle2, Check, Meal, Note, Plus, Sun, Trophy } from '../components/icons';
 import StickyNote from '../components/StickyNote';
 import { useStore } from '../store/AppContext';
 import TaskRow from '../components/TaskRow';
@@ -8,11 +8,21 @@ import Avatar from '../components/Avatar';
 import { addDays, formatLong, toISO, todayISO } from '../lib/dates';
 import type { TaskInstance } from '../types';
 import { expandAll } from '../lib/recurrence';
+import { balanceOf, totalEarned } from '../lib/points';
+import type { AppData } from '../types';
 
 const byTime = (a: TaskInstance, b: TaskInstance) => (a.time || '99:99').localeCompare(b.time || '99:99');
 
 export default function Dashboard() {
-  const { tasks, users, notes, shopping, toggleShoppingItem } = useStore();
+  const store = useStore();
+  const { tasks, users, notes, shopping, toggleShoppingItem, meals } = store;
+  const mealToday = meals.find((m) => m.date === todayISO());
+  const mealTomorrow = meals.find((m) => m.date === toISO(addDays(new Date(), 1)));
+  const cookToday = users.find((u) => u.id === mealToday?.cookId);
+  const board = users
+    .map((u) => ({ u, earned: totalEarned(store as unknown as AppData, u.id), balance: balanceOf(store as unknown as AppData, u.id) }))
+    .sort((a, b) => b.earned - a.earned)
+    .slice(0, 3);
   const toBuy = shopping.filter((i) => !i.done);
   const pinned = notes.filter((n) => n.pinned).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
   const [editing, setEditing] = useState<Partial<TaskInstance> | null>(null);
@@ -106,7 +116,50 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <section className="card">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              <Meal size={16} /> Avondeten
+            </h2>
+            <a href="#/maaltijden" className="text-sm text-primary hover:underline">Weekmenu</a>
+          </div>
+          {mealToday ? (
+            <div className="space-y-1">
+              <p className="text-lg font-semibold leading-tight">{mealToday.title}</p>
+              <p className="flex items-center gap-2 text-sm text-muted">
+                <Avatar user={cookToday} size={20} /> {cookToday ? `${cookToday.name} kookt` : 'Nog geen kok'}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted">Vandaag nog niets gepland.</p>
+          )}
+          {mealTomorrow && <p className="mt-3 text-xs text-muted">Morgen: {mealTomorrow.title}</p>}
+        </section>
+
+        <section className="card">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              <Trophy size={16} /> Scorebord
+            </h2>
+            <a href="#/punten" className="text-sm text-primary hover:underline">Punten & badges</a>
+          </div>
+          {board.length === 0 ? (
+            <p className="text-sm text-muted">Voeg gebruikers toe om punten te verdienen.</p>
+          ) : (
+            <ol className="space-y-2">
+              {board.map(({ u, balance, earned }, i) => (
+                <li key={u.id} className="flex items-center gap-3">
+                  <span className="w-5 text-center text-sm">{['🥇', '🥈', '🥉'][i]}</span>
+                  <Avatar user={u} size={28} />
+                  <span className="flex-1 truncate text-sm font-medium">{u.name}</span>
+                  <span className="text-sm font-semibold" title={`${earned} verdiend in totaal`}>{balance}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
         <section className="card">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">

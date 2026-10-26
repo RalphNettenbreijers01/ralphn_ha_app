@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bin, Cart, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
+import { Bin, Cart, Meal, Trophy, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
 import Dashboard from './pages/Dashboard';
 import CalendarPage from './pages/CalendarPage';
 import TasksPage from './pages/TasksPage';
@@ -7,12 +7,17 @@ import UsersPage from './pages/UsersPage';
 import RoomsPage from './pages/RoomsPage';
 import NotesPage from './pages/NotesPage';
 import AfvalPage from './pages/AfvalPage';
+import MealsPage from './pages/MealsPage';
+import PointsPage from './pages/PointsPage';
+import { useStore } from './store/AppContext';
 import ShoppingPage from './pages/ShoppingPage';
 
 const ROUTES = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, el: <Dashboard /> },
   { id: 'kalender', label: 'Kalender', icon: CalendarDays, el: <CalendarPage /> },
   { id: 'taken', label: 'Taken', icon: ListChecks, el: <TasksPage /> },
+  { id: 'maaltijden', label: 'Maaltijden', short: 'Eten', icon: Meal, el: <MealsPage /> },
+  { id: 'punten', label: 'Punten & badges', short: 'Punten', icon: Trophy, el: <PointsPage /> },
   { id: 'boodschappen', label: 'Boodschappen', short: 'Winkel', icon: Cart, el: <ShoppingPage /> },
   { id: 'notities', label: 'Notities', icon: Note, el: <NotesPage /> },
   { id: 'gebruikers', label: 'Gebruikers', icon: Users, el: <UsersPage /> },
@@ -21,6 +26,19 @@ const ROUTES = [
 ] as const;
 
 const currentId = () => window.location.hash.replace('#/', '') || 'dashboard';
+
+function Toasts() {
+  const { toasts } = useStore();
+  return (
+    <div className="pointer-events-none fixed bottom-20 right-4 z-[60] flex max-w-sm flex-col gap-2 md:bottom-6">
+      {toasts.map((t) => (
+        <div key={t.id} role="status" className="pointer-events-auto rounded-xl border border-line bg-card px-4 py-3 text-sm shadow-lg">
+          {t.msg}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function App() {
   const [id, setId] = useState(currentId);
@@ -58,6 +76,8 @@ export default function App() {
       <main className="min-w-0 flex-1 p-4 pb-24 md:p-8 md:pb-8">
         <div className="mx-auto max-w-6xl">{route.el}</div>
       </main>
+
+      <Toasts />
 
       {/* onderste navigatie (mobiel) */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-card md:hidden">

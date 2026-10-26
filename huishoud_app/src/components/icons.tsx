@@ -18,6 +18,11 @@ import {
   mdiPencil,
   mdiPlus,
   mdiRepeat,
+  mdiTrophyOutline,
+  mdiSilverwareForkKnife,
+  mdiGiftOutline,
+  mdiStar,
+  mdiLock,
   mdiTrashCanOutline,
   mdiCartOutline,
   mdiNoteTextOutline,
@@ -62,6 +67,11 @@ export const Note = make(mdiNoteTextOutline);
 export const Pin = make(mdiPin);
 export const PinOutline = make(mdiPinOutline);
 export const Bin = make(mdiTrashCanOutline);
+export const Trophy = make(mdiTrophyOutline);
+export const Meal = make(mdiSilverwareForkKnife);
+export const Gift = make(mdiGiftOutline);
+export const Star = make(mdiStar);
+export const Lock = make(mdiLock);
 export const Search = make(mdiMagnify);
 export const Sun = make(mdiWhiteBalanceSunny);
 export const Trash2 = make(mdiDelete);

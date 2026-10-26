@@ -2,6 +2,7 @@ export type TaskStatus = 'open' | 'in_progress' | 'done';
 
 export interface User {
   id: string;
+  updatedAt?: number; // tijdstip laatste wijziging (voor samenvoegen tussen apparaten)
   name: string;
   role: string;
   color: string; // hex
@@ -11,6 +12,7 @@ export interface User {
 
 export interface Room {
   id: string;
+  updatedAt?: number; // tijdstip laatste wijziging (voor samenvoegen tussen apparaten)
   name: string;
   icon: string; // emoji
 }
@@ -25,6 +27,7 @@ export interface Repeat {
 
 export interface Task {
   id: string;
+  updatedAt?: number; // tijdstip laatste wijziging (voor samenvoegen tussen apparaten)
   title: string;
   description: string;
   userId: string | null;
@@ -35,6 +38,7 @@ export interface Task {
   repeat?: Repeat; // terugkerende taak: 'date' is de startdatum
   skipped?: string[]; // overgeslagen voorkomens (datums)
   occStatus?: Record<string, TaskStatus>; // status per voorkomen (datum), alleen bij terugkerende taken
+  points?: number; // punten bij afronden (standaard 10)
   sourceKey?: string; // automatisch aangemaakt (bijv. afvalophaling): 'afval:<soort>|<ophaaldag>'
 }
 
@@ -43,6 +47,7 @@ export type TaskInstance = Task & { occurrence?: string };
 
 export interface Note {
   id: string;
+  updatedAt?: number; // tijdstip laatste wijziging (voor samenvoegen tussen apparaten)
   text: string;
   color: string; // sleutel uit NOTE_COLORS
   userId: string | null; // wie schreef de notitie
@@ -52,11 +57,56 @@ export interface Note {
 
 export interface ShoppingItem {
   id: string;
+  updatedAt?: number; // tijdstip laatste wijziging (voor samenvoegen tussen apparaten)
   name: string;
   quantity: string; // vrije tekst, bijv. "2x" of "500 g"
   category: string; // sleutel uit SHOPPING_CATEGORIES
   done: boolean;
   createdAt: number;
+}
+
+export interface Ingredient {
+  name: string;
+  quantity: string;
+  category: string; // sleutel uit SHOPPING_CATEGORIES
+}
+
+export interface Meal {
+  id: string;
+  updatedAt?: number;
+  date: string; // YYYY-MM-DD, avondeten
+  title: string;
+  cookId: string | null; // wie kookt
+  notes: string;
+  ingredients: Ingredient[];
+}
+
+export interface PointEntry {
+  id: string; // earn: 'earn|<taak>|<voorkomen>' (deterministisch)
+  updatedAt?: number;
+  userId: string;
+  points: number; // negatief bij inwisselen
+  reason: string;
+  ts: number;
+  kind: 'earn' | 'spend' | 'bonus';
+  roomId?: string | null;
+  tag?: string; // bijv. 'afval'
+}
+
+export interface Reward {
+  id: string;
+  updatedAt?: number;
+  title: string;
+  icon: string;
+  cost: number;
+}
+
+export interface EarnedBadge {
+  id: string; // '<userId>|<badgeId>'
+  updatedAt?: number;
+  userId: string;
+  badgeId: string;
+  earnedAt: number;
 }
 
 export interface AfvalType {
@@ -69,6 +119,7 @@ export interface AfvalSettings {
   types: Record<string, AfvalType>; // per containersoort
   time: string; // tijdstip van de taak op de avond voor de ophaaldag
   ignored: string[]; // sourceKeys van taken die de gebruiker verwijderde
+  updatedAt?: number;
 }
 
 export interface AppData {
@@ -79,6 +130,12 @@ export interface AppData {
   shopping: ShoppingItem[];
   shoppingNames: string[]; // eerder gebruikte productnamen, voor suggesties
   afval: AfvalSettings;
+  meals: Meal[];
+  points: PointEntry[];
+  rewards: Reward[];
+  badges: EarnedBadge[];
+  deleted: Record<string, number>; // verwijderde record-id's → tijdstip
+  rev?: number; // versienummer van de server (alleen informatief)
 }
 
 export const STATUS_LABELS: Record<TaskStatus, string> = {

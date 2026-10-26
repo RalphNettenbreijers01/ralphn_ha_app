@@ -31,6 +31,16 @@ export const SHOPPING_CATEGORIES: Record<string, { label: string; icon: string }
   other: { label: 'Overig', icon: '🛒' },
 };
 
+export const REWARD_ICONS = ['🎬', '😴', '🍦', '🎮', '🍕', '🎁', '🛍️', '🎢', '🧸', '📱'];
+
+export const REWARD_EXAMPLES = [
+  { title: 'Filmavond kiezen', icon: '🎬', cost: 50 },
+  { title: 'Uitslapen', icon: '😴', cost: 100 },
+  { title: 'Ijsje halen', icon: '🍦', cost: 30 },
+  { title: '30 minuten extra gamen', icon: '🎮', cost: 40 },
+  { title: 'Kiezen wat we eten', icon: '🍕', cost: 60 },
+];
+
 export const ROOM_ICONS = ['🍳', '🛋️', '🛁', '🌳', '🛏️', '🚗', '🧺', '💻', '🚪', '📦'];
 
 const defaultData = (): AppData => ({
@@ -47,6 +57,11 @@ const defaultData = (): AppData => ({
   shopping: [],
   shoppingNames: [],
   afval: { types: {}, time: '18:00', ignored: [] },
+  meals: [],
+  points: [],
+  rewards: [],
+  badges: [],
+  deleted: {},
 });
 
 const normalize = (p: Partial<AppData>): AppData => ({
@@ -57,6 +72,12 @@ const normalize = (p: Partial<AppData>): AppData => ({
   shopping: p.shopping ?? [],
   shoppingNames: p.shoppingNames ?? [],
   afval: { types: {}, time: '18:00', ignored: [], ...p.afval },
+  meals: p.meals ?? [],
+  points: p.points ?? [],
+  rewards: p.rewards ?? [],
+  badges: p.badges ?? [],
+  deleted: p.deleted ?? {},
+  rev: p.rev,
 });
 
 function loadLocal(): AppData | null {
@@ -71,16 +92,25 @@ function loadLocal(): AppData | null {
 
 export const loadData = (): AppData => loadLocal() ?? defaultData();
 
+/** Verschil tussen de klok van dit apparaat en de server, zodat tijdstempels onderling vergelijkbaar zijn. */
+export const clock = { offset: 0 };
+export const syncedNow = () => Date.now() + clock.offset;
+
+const isJson = (res: Response) => res.ok && (res.headers.get('content-type') ?? '').includes('application/json');
+
 /**
  * Server-side opslag (Home Assistant add-on): GET/PUT op het relatieve pad `api/data`.
- * Geeft `undefined` terug als er geen backend is (bijv. tijdens `npm run dev`),
- * `null` als de backend nog geen data heeft.
+ * - `undefined`: geen backend (bijv. tijdens `npm run dev`)
+ * - `null`: backend heeft nog geen data
+ * - `'unchanged'`: sinds `sinceRev` is er niets gewijzigd
  */
-export async function fetchRemote(): Promise<AppData | null | undefined> {
+export async function fetchRemote(sinceRev?: number): Promise<AppData | null | undefined | 'unchanged'> {
   try {
-    const res = await fetch('api/data', { cache: 'no-store' });
-    if (!res.ok || !(res.headers.get('content-type') ?? '').includes('application/json')) return undefined;
+    const res = await fetch(sinceRev === undefined ? 'api/data' : `api/data?rev=${sinceRev}`, { cache: 'no-store' });
+    if (!isJson(res)) return undefined;
     const json = await res.json();
+    if (typeof json.serverNow === 'number') clock.offset = json.serverNow - Date.now();
+    if (json.unchanged) return 'unchanged';
     return json && typeof json === 'object' && 'tasks' in json ? normalize(json) : null;
   } catch {
     return undefined;
@@ -97,15 +127,21 @@ export async function fetchAfval(refresh = false): Promise<AfvalInfo | undefined
   }
 }
 
-export async function pushRemote(data: AppData): Promise<void> {
+/** Stuurt de data naar de server, die hem samenvoegt met die van andere apparaten; geeft het resultaat terug. */
+export async function pushRemote(data: AppData): Promise<AppData | undefined> {
   try {
-    await fetch('api/data', {
+    const res = await fetch('api/data', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    if (!isJson(res)) return undefined;
+    const json = await res.json();
+    if (typeof json.serverNow === 'number') clock.offset = json.serverNow - Date.now();
+    return 'tasks' in json ? normalize(json) : undefined;
   } catch (e) {
     console.error('Synchroniseren met server mislukt', e);
+    return undefined;
   }
 }
 
