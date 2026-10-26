@@ -41,6 +41,15 @@ export const REWARD_EXAMPLES = [
   { title: 'Kiezen wat we eten', icon: '🍕', cost: 60 },
 ];
 
+export const LIST_ICONS = ['📝', '🧰', '🎁', '🧳', '🏖️', '🎄', '📚', '🎬', '🌱', '⭐'];
+
+export const LIST_TEMPLATES = [
+  { name: 'Inpaklijst vakantie', icon: '🧳' },
+  { name: 'Klusjes', icon: '🧰' },
+  { name: 'Cadeau-ideeën', icon: '🎁' },
+  { name: 'Wensenlijst', icon: '⭐' },
+];
+
 export const ROOM_ICONS = ['🍳', '🛋️', '🛁', '🌳', '🛏️', '🚗', '🧺', '💻', '🚪', '📦'];
 
 const defaultData = (): AppData => ({
@@ -58,6 +67,9 @@ const defaultData = (): AppData => ({
   shoppingNames: [],
   afval: { types: {}, time: '18:00', ignored: [] },
   meals: [],
+  recipes: [],
+  lists: [],
+  listItems: [],
   points: [],
   rewards: [],
   badges: [],
@@ -73,6 +85,9 @@ const normalize = (p: Partial<AppData>): AppData => ({
   shoppingNames: p.shoppingNames ?? [],
   afval: { types: {}, time: '18:00', ignored: [], ...p.afval },
   meals: p.meals ?? [],
+  recipes: p.recipes ?? [],
+  lists: p.lists ?? [],
+  listItems: p.listItems ?? [],
   points: p.points ?? [],
   rewards: p.rewards ?? [],
   badges: p.badges ?? [],
@@ -80,7 +95,7 @@ const normalize = (p: Partial<AppData>): AppData => ({
   rev: p.rev,
 });
 
-function loadLocal(): AppData | null {
+export function loadLocal(): AppData | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return normalize(JSON.parse(raw) as Partial<AppData>);
@@ -103,17 +118,19 @@ const isJson = (res: Response) => res.ok && (res.headers.get('content-type') ?? 
  * - `undefined`: geen backend (bijv. tijdens `npm run dev`)
  * - `null`: backend heeft nog geen data
  * - `'unchanged'`: sinds `sinceRev` is er niets gewijzigd
+ * - `'offline'`: geen verbinding met de server; werk lokaal verder en probeer het later opnieuw
  */
-export async function fetchRemote(sinceRev?: number): Promise<AppData | null | undefined | 'unchanged'> {
+export async function fetchRemote(sinceRev?: number): Promise<AppData | null | undefined | 'unchanged' | 'offline'> {
   try {
     const res = await fetch(sinceRev === undefined ? 'api/data' : `api/data?rev=${sinceRev}`, { cache: 'no-store' });
-    if (!isJson(res)) return undefined;
+    if (!res.ok) return 'offline'; // server/proxy tijdelijk onbereikbaar
+    if (!isJson(res)) return undefined; // geen backend (bijv. dev-server)
     const json = await res.json();
     if (typeof json.serverNow === 'number') clock.offset = json.serverNow - Date.now();
     if (json.unchanged) return 'unchanged';
     return json && typeof json === 'object' && 'tasks' in json ? normalize(json) : null;
   } catch {
-    return undefined;
+    return 'offline'; // netwerkfout
   }
 }
 

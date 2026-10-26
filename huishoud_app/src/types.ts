@@ -71,6 +71,30 @@ export interface Ingredient {
   category: string; // sleutel uit SHOPPING_CATEGORIES
 }
 
+export interface List {
+  id: string;
+  updatedAt?: number;
+  name: string;
+  icon: string; // emoji
+}
+
+export interface ListItem {
+  id: string;
+  updatedAt?: number;
+  listId: string;
+  text: string;
+  done: boolean;
+  createdAt: number;
+}
+
+export interface Recipe {
+  id: string;
+  updatedAt?: number;
+  title: string;
+  notes: string; // bereiding of link
+  ingredients: Ingredient[];
+}
+
 export interface Meal {
   id: string;
   updatedAt?: number;
@@ -79,6 +103,7 @@ export interface Meal {
   cookId: string | null; // wie kookt
   notes: string;
   ingredients: Ingredient[];
+  recipeId?: string; // gepland vanuit dit recept
 }
 
 export interface PointEntry {
@@ -131,6 +156,9 @@ export interface AppData {
   shoppingNames: string[]; // eerder gebruikte productnamen, voor suggesties
   afval: AfvalSettings;
   meals: Meal[];
+  recipes: Recipe[];
+  lists: List[];
+  listItems: ListItem[];
   points: PointEntry[];
   rewards: Reward[];
   badges: EarnedBadge[];

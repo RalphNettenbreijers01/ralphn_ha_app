@@ -4,7 +4,7 @@
 // zodat twee mensen tegelijk verschillende dingen kunnen wijzigen zonder elkaars werk te overschrijven.
 // Verwijderen wordt bijgehouden in `deleted` (id → tijdstip), anders zou een verouderd apparaat het record terugzetten.
 
-const COLLECTIONS = ['users', 'rooms', 'tasks', 'notes', 'shopping', 'meals', 'points', 'rewards', 'badges'];
+const COLLECTIONS = ['users', 'rooms', 'tasks', 'notes', 'shopping', 'meals', 'recipes', 'lists', 'listItems', 'points', 'rewards', 'badges'];
 const TOMBSTONE_TTL = 60 * 24 * 60 * 60 * 1000; // 60 dagen
 
 /**

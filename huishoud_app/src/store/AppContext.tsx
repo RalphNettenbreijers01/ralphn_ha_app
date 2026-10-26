@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { mergeData } from '../../merge.js';
-import type { AfvalType, AppData, Ingredient, Meal, Note, PointEntry, Reward, Room, ShoppingItem, Task, TaskStatus, User } from '../types';
+import type { AfvalType, AppData, Ingredient, List, ListItem, Meal, Note, PointEntry, Recipe, Reward, Room, ShoppingItem, Task, TaskStatus, User } from '../types';
 import { STORAGE_KEY, fetchAfval, fetchRemote, loadData, pushRemote, saveData, syncedNow, uid } from '../lib/storage';
 import { todayISO } from '../lib/dates';
 import { balanceOf, reconcile } from '../lib/points';
@@ -29,6 +29,15 @@ interface Store extends AppData {
   setAfvalType: (type: string, patch: Partial<AfvalType>) => void;
   setAfvalTime: (time: string) => void;
   saveMeal: (m: Draft<Meal>) => void;
+  saveList: (l: Draft<List>) => void;
+  deleteList: (id: string) => void;
+  saveListItem: (i: Draft<ListItem>) => void;
+  toggleListItem: (id: string) => void;
+  deleteListItem: (id: string) => void;
+  clearDoneListItems: (listId: string) => void;
+  offline: boolean;
+  saveRecipe: (r: Draft<Recipe>) => void;
+  deleteRecipe: (id: string) => void;
   deleteMeal: (id: string) => void;
   addToShopping: (items: Ingredient[]) => number;
   saveReward: (r: Draft<Reward>) => void;
@@ -48,7 +57,7 @@ function upsert<T extends { id: string }>(list: T[], item: Draft<T>): T[] {
   return [...list, { ...item, id: uid() } as T];
 }
 
-const COLLECTIONS = ['users', 'rooms', 'tasks', 'notes', 'shopping', 'meals', 'points', 'rewards', 'badges'] as const;
+const COLLECTIONS = ['users', 'rooms', 'tasks', 'notes', 'shopping', 'meals', 'recipes', 'lists', 'listItems', 'points', 'rewards', 'badges'] as const;
 
 /**
  * Geeft gewijzigde records een tijdstempel en onthoudt verwijderde records, zodat de server de data
@@ -79,7 +88,10 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
   const dataRef = useRef(data);
   dataRef.current = data;
   const rev = useRef(initial.rev ?? 0);
-  const lastSent = useRef('');
+  const lastSent = useRef(''); // laatste versie die de server bevestigde
+  const [offline, setOffline] = useState(false);
+  const failed = useRef(false); // er staan lokale wijzigingen die nog niet naar de server zijn
+  const [retry, setRetry] = useState(0);
 
   /** Voeg data van de server samen met de lokale staat (lokaal nieuwere wijzigingen blijven behouden). */
   const applyRemote = useCallback((server: AppData) => {
@@ -96,12 +108,20 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
     const json = JSON.stringify(data);
     if (json === lastSent.current) return;
     const t = setTimeout(async () => {
-      lastSent.current = json;
       const server = await pushRemote(data);
-      if (server) applyRemote(server);
+      if (server) {
+        lastSent.current = json;
+        failed.current = false;
+        setOffline(false);
+        applyRemote(server);
+      } else {
+        // geen verbinding: wijzigingen blijven lokaal bewaard en worden opnieuw geprobeerd (zie poll hieronder)
+        failed.current = true;
+        setOffline(true);
+      }
     }, 300); // debounce
     return () => clearTimeout(t);
-  }, [data, remote, applyRemote]);
+  }, [data, remote, applyRemote, retry]);
 
   // Wijzigingen van andere apparaten ophalen: elke 3 seconden (alleen als de app zichtbaar is) en bij terugkeren naar de app
   useEffect(() => {
@@ -111,16 +131,26 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
       if (busy || document.hidden) return;
       busy = true;
       try {
+        if (failed.current) setRetry((n) => n + 1); // eerst proberen openstaande wijzigingen te versturen
         const r = await fetchRemote(rev.current);
-        if (r && r !== 'unchanged') applyRemote(r);
+        if (r === 'offline') setOffline(true);
+        else if (r !== undefined) {
+          if (!failed.current) setOffline(false);
+          if (r && r !== 'unchanged') applyRemote(r);
+        }
       } finally {
         busy = false;
       }
     };
     const timer = setInterval(tick, 3000);
+    const goOffline = () => setOffline(true);
     document.addEventListener('visibilitychange', tick);
     window.addEventListener('focus', tick);
+    window.addEventListener('online', tick);
+    window.addEventListener('offline', goOffline);
     return () => {
+      window.removeEventListener('online', tick);
+      window.removeEventListener('offline', goOffline);
       clearInterval(timer);
       document.removeEventListener('visibilitychange', tick);
       window.removeEventListener('focus', tick);
@@ -264,6 +294,23 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
     };
   }, [remote, syncAfval]);
 
+  const saveList = useCallback((l: Draft<List>) => setData((d) => ({ ...d, lists: upsert(d.lists, l) })), []);
+  const deleteList = useCallback(
+    (id: string) => setData((d) => ({ ...d, lists: d.lists.filter((l) => l.id !== id), listItems: d.listItems.filter((i) => i.listId !== id) })),
+    [],
+  );
+  const saveListItem = useCallback((i: Draft<ListItem>) => setData((d) => ({ ...d, listItems: upsert(d.listItems, i) })), []);
+  const toggleListItem = useCallback(
+    (id: string) => setData((d) => ({ ...d, listItems: d.listItems.map((i) => (i.id === id ? { ...i, done: !i.done } : i)) })),
+    [],
+  );
+  const deleteListItem = useCallback((id: string) => setData((d) => ({ ...d, listItems: d.listItems.filter((i) => i.id !== id) })), []);
+  const clearDoneListItems = useCallback(
+    (listId: string) => setData((d) => ({ ...d, listItems: d.listItems.filter((i) => !(i.listId === listId && i.done)) })),
+    [],
+  );
+  const saveRecipe = useCallback((r: Draft<Recipe>) => setData((d) => ({ ...d, recipes: upsert(d.recipes, r) })), []);
+  const deleteRecipe = useCallback((id: string) => setData((d) => ({ ...d, recipes: d.recipes.filter((r) => r.id !== id) })), []);
   const saveMeal = useCallback((m: Draft<Meal>) => setData((d) => ({ ...d, meals: upsert(d.meals, m) })), []);
   const deleteMeal = useCallback((id: string) => setData((d) => ({ ...d, meals: d.meals.filter((m) => m.id !== id) })), []);
 
@@ -337,8 +384,8 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
   }, [data.badges, data.users, toast]);
 
   const value = useMemo<Store>(
-    () => ({ ...data, saveMeal, deleteMeal, addToShopping, saveReward, deleteReward, redeemReward, awardBonus, toast, toasts, syncAfval, setAfvalType, setAfvalTime, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
-    [data, saveMeal, deleteMeal, addToShopping, saveReward, deleteReward, redeemReward, awardBonus, toast, toasts, syncAfval, setAfvalType, setAfvalTime, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
+    () => ({ ...data, offline, saveList, deleteList, saveListItem, toggleListItem, deleteListItem, clearDoneListItems, saveRecipe, deleteRecipe, saveMeal, deleteMeal, addToShopping, saveReward, deleteReward, redeemReward, awardBonus, toast, toasts, syncAfval, setAfvalType, setAfvalTime, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask }),
+    [data, offline, saveList, deleteList, saveListItem, toggleListItem, deleteListItem, clearDoneListItems, saveRecipe, deleteRecipe, saveMeal, deleteMeal, addToShopping, saveReward, deleteReward, redeemReward, awardBonus, toast, toasts, syncAfval, setAfvalType, setAfvalTime, saveNote, deleteNote, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, clearDoneShopping, saveUser, deleteUser, saveRoom, deleteRoom, saveTask, deleteTask, setTaskStatus, skipOccurrence, moveTask],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

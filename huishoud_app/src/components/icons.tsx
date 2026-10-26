@@ -18,6 +18,10 @@ import {
   mdiPencil,
   mdiPlus,
   mdiRepeat,
+  mdiFormatListBulleted,
+  mdiChartBar,
+  mdiCloudOffOutline,
+  mdiBookOpenPageVariantOutline,
   mdiTrophyOutline,
   mdiSilverwareForkKnife,
   mdiGiftOutline,
@@ -72,6 +76,10 @@ export const Meal = make(mdiSilverwareForkKnife);
 export const Gift = make(mdiGiftOutline);
 export const Star = make(mdiStar);
 export const Lock = make(mdiLock);
+export const Book = make(mdiBookOpenPageVariantOutline);
+export const Lists = make(mdiFormatListBulleted);
+export const ChartBar = make(mdiChartBar);
+export const CloudOff = make(mdiCloudOffOutline);
 export const Search = make(mdiMagnify);
 export const Sun = make(mdiWhiteBalanceSunny);
 export const Trash2 = make(mdiDelete);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bin, Cart, Meal, Trophy, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
+import { Bin, Book, Cart, ChartBar, CloudOff, Lists, Meal, Trophy, CalendarDays, DoorOpen, Home, ListChecks, Note, Users } from './components/icons';
 import Dashboard from './pages/Dashboard';
 import CalendarPage from './pages/CalendarPage';
 import TasksPage from './pages/TasksPage';
@@ -8,6 +8,9 @@ import RoomsPage from './pages/RoomsPage';
 import NotesPage from './pages/NotesPage';
 import AfvalPage from './pages/AfvalPage';
 import MealsPage from './pages/MealsPage';
+import RecipesPage from './pages/RecipesPage';
+import ListsPage from './pages/ListsPage';
+import StatsPage from './pages/StatsPage';
 import PointsPage from './pages/PointsPage';
 import { useStore } from './store/AppContext';
 import ShoppingPage from './pages/ShoppingPage';
@@ -17,11 +20,14 @@ const ROUTES = [
   { id: 'kalender', label: 'Kalender', icon: CalendarDays, el: <CalendarPage /> },
   { id: 'taken', label: 'Taken', icon: ListChecks, el: <TasksPage /> },
   { id: 'maaltijden', label: 'Maaltijden', short: 'Eten', icon: Meal, el: <MealsPage /> },
+  { id: 'recepten', label: 'Recepten', icon: Book, el: <RecipesPage /> },
   { id: 'punten', label: 'Punten & badges', short: 'Punten', icon: Trophy, el: <PointsPage /> },
   { id: 'boodschappen', label: 'Boodschappen', short: 'Winkel', icon: Cart, el: <ShoppingPage /> },
+  { id: 'lijsten', label: 'Lijsten', icon: Lists, el: <ListsPage /> },
   { id: 'notities', label: 'Notities', icon: Note, el: <NotesPage /> },
   { id: 'gebruikers', label: 'Gebruikers', icon: Users, el: <UsersPage /> },
   { id: 'afval', label: 'Afval', icon: Bin, el: <AfvalPage /> },
+  { id: 'overzicht', label: 'Overzicht', icon: ChartBar, el: <StatsPage /> },
   { id: 'ruimtes', label: 'Ruimtes', icon: DoorOpen, el: <RoomsPage /> },
 ] as const;
 
@@ -36,6 +42,17 @@ function Toasts() {
           {t.msg}
         </div>
       ))}
+    </div>
+  );
+}
+
+function OfflineBanner() {
+  const { offline } = useStore();
+  if (!offline) return null;
+  return (
+    <div role="status" className="mb-4 flex items-center gap-2 rounded-lg border border-warn/40 bg-warn/10 px-4 py-2 text-sm">
+      <CloudOff size={18} />
+      <span>Geen verbinding. Je wijzigingen worden bewaard en gesynchroniseerd zodra je weer online bent.</span>
     </div>
   );
 }
@@ -74,7 +91,10 @@ export default function App() {
       </aside>
 
       <main className="min-w-0 flex-1 p-4 pb-24 md:p-8 md:pb-8">
-        <div className="mx-auto max-w-6xl">{route.el}</div>
+        <div className="mx-auto max-w-6xl">
+          <OfflineBanner />
+          {route.el}
+        </div>
       </main>
 
       <Toasts />

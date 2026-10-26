@@ -64,3 +64,21 @@ Pagina "Maaltijden": plan per dag het avondeten, met wie er kookt en de ingredi�
 - Beloningen maak je zelf aan (naam, icoon, kosten) en wissel je in met punten. Bonuspunten kun je handmatig geven.
 - Badges (18) worden automatisch behaald en nooit ingetrokken: aantal taken, punten, dagen op rij, vroeg/laat, afval, specialist per ruimte, koken volgens het weekmenu en een eerste beloning. Een nieuwe badge verschijnt als melding, ook op andere apparaten.
 - Sensoren: `sensor.huishoud_<naam>_punten` (attribuut `badges`).
+
+## Recepten
+
+Pagina "Recepten": bewaar gerechten die jullie vaker maken, met ingrediënten en bereiding. "Naar lijst" zet de ingrediënten met één klik op de boodschappenlijst (wat al open staat wordt overgeslagen). "Inplannen" zet het recept op een dag in het weekmenu, optioneel met kok en met de ingrediënten op de lijst. In het weekmenu kies je een recept uit de suggesties, of sla je een maaltijd op via "Als recept opslaan".
+
+## Lijsten
+
+Pagina "Lijsten": gedeelde afvinklijstjes naast de boodschappen (inpaklijst, klusjes, cadeau-ideeën…). Maak zelf lijsten of begin met een voorbeeld; items afvinken, verwijderen en "Klare items verwijderen" werken zoals bij de boodschappen. Alle apparaten zien dezelfde lijsten.
+
+## Overzicht (statistieken)
+
+Pagina "Overzicht": per week, maand, 90 dagen of jaar: afgeronde taken, percentage op schema, achterstallige taken en verdiende punten; verder afgerond per persoon en per ruimte, het verloop over de laatste 8 weken, de weekdagen waarop taken worden afgerond en de maaltijden in de periode.
+
+## Offline werken
+
+- Valt de verbinding weg terwijl de app open staat (bijv. in de winkel), dan werk je gewoon door: alles wordt lokaal bewaard en er staat een melding "Geen verbinding". Zodra er weer verbinding is, worden de wijzigingen automatisch verstuurd en per item samengevoegd met wat anderen intussen deden.
+- Open je de app later opnieuw, dan worden niet-verstuurde wijzigingen eerst samengevoegd met de server, zodat er niets verloren gaat.
+- Een service worker bewaart de app zelf, zodat hij ook bij opstarten zonder verbinding kan laden. Let op: de app draait in Home Assistant; die moet zelf ook kunnen laden. Opstarten zonder enige verbinding werkt dus alleen als Home Assistant (of de app erin) al in de cache van je telefoon of browser staat.

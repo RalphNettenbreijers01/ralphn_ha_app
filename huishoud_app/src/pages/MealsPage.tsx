@@ -1,9 +1,9 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Cart, ChevronLeft, ChevronRight, Plus, Trash2 } from '../components/icons';
+import { Book, Cart, ChevronLeft, ChevronRight, Plus, Trash2 } from '../components/icons';
+import IngredientsEditor, { cleanIngredients } from '../components/IngredientsEditor';
 import { useStore } from '../store/AppContext';
 import Modal from '../components/Modal';
 import Avatar from '../components/Avatar';
-import { SHOPPING_CATEGORIES } from '../lib/storage';
 import { addDays, toISO, todayISO, weekDays } from '../lib/dates';
 import type { Ingredient, Meal } from '../types';
 
@@ -11,39 +11,47 @@ const short = (d: Date) => d.toLocaleDateString('nl-NL', { day: 'numeric', month
 const WEEKDAY = (d: Date) => d.toLocaleDateString('nl-NL', { weekday: 'long' });
 
 function MealModal({ meal, onClose }: { meal: Partial<Meal>; onClose: () => void }) {
-  const { users, meals, saveMeal, deleteMeal, addToShopping, toast } = useStore();
+  const { users, meals, recipes, saveMeal, saveRecipe, deleteMeal, addToShopping, toast } = useStore();
   const [title, setTitle] = useState(meal.title ?? '');
   const [date, setDate] = useState(meal.date ?? todayISO());
   const [cookId, setCookId] = useState(meal.cookId ?? '');
   const [notes, setNotes] = useState(meal.notes ?? '');
   const [ingredients, setIngredients] = useState<Ingredient[]>(meal.ingredients ?? []);
 
-  // eerder gebruikte gerechten als suggestie
-  const previous = useMemo(() => {
-    const map = new Map<string, Meal>();
-    for (const m of [...meals].sort((a, b) => a.date.localeCompare(b.date))) map.set(m.title.trim().toLowerCase(), m);
+  // suggesties: eigen recepten eerst, daarna eerder geplande gerechten
+  const known = useMemo(() => {
+    const map = new Map<string, { title: string; ingredients: Ingredient[]; cookId: string | null; recipeId?: string }>();
+    for (const m of [...meals].sort((a, b) => a.date.localeCompare(b.date))) {
+      if (m.id !== meal.id) map.set(m.title.trim().toLowerCase(), { title: m.title, ingredients: m.ingredients, cookId: m.cookId, recipeId: m.recipeId });
+    }
+    for (const r of recipes) map.set(r.title.trim().toLowerCase(), { title: r.title, ingredients: r.ingredients, cookId: null, recipeId: r.id });
     return map;
-  }, [meals]);
+  }, [meals, recipes, meal.id]);
+  const [recipeId, setRecipeId] = useState(meal.recipeId);
+  const isRecipe = recipes.some((r) => r.title.trim().toLowerCase() === title.trim().toLowerCase());
 
   const onTitle = (v: string) => {
     setTitle(v);
-    const prev = previous.get(v.trim().toLowerCase());
+    const prev = known.get(v.trim().toLowerCase());
     // bekend gerecht en nog geen ingrediënten ingevuld: neem ze over
-    if (prev && ingredients.length === 0 && prev.id !== meal.id) {
+    if (prev && ingredients.length === 0) {
       setIngredients(prev.ingredients.map((i) => ({ ...i })));
+      setRecipeId(prev.recipeId);
       if (!cookId && prev.cookId) setCookId(prev.cookId);
     }
   };
 
-  const setIng = (i: number, patch: Partial<Ingredient>) =>
-    setIngredients((list) => list.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
+  const clean = () => cleanIngredients(ingredients);
 
-  const clean = () => ingredients.map((i) => ({ ...i, name: i.name.trim(), quantity: i.quantity.trim() })).filter((i) => i.name);
+  const toRecipe = () => {
+    saveRecipe({ title: title.trim(), notes: notes.trim(), ingredients: clean() });
+    toast(`“${title.trim()}” opgeslagen als recept`);
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    saveMeal({ id: meal.id, title: title.trim(), date, cookId: cookId || null, notes: notes.trim(), ingredients: clean() });
+    saveMeal({ id: meal.id, title: title.trim(), date, cookId: cookId || null, notes: notes.trim(), ingredients: clean(), recipeId });
     onClose();
   };
 
@@ -59,8 +67,8 @@ function MealModal({ meal, onClose }: { meal: Partial<Meal>; onClose: () => void
           <label className="label" htmlFor="m-title">Gerecht</label>
           <input id="m-title" className="input" autoFocus required list="meal-titles" value={title} onChange={(e) => onTitle(e.target.value)} placeholder="Bijv. Spaghetti bolognese" />
           <datalist id="meal-titles">
-            {[...previous.values()].map((m) => (
-              <option key={m.id} value={m.title} />
+            {[...known.values()].map((m) => (
+              <option key={m.title} value={m.title} />
             ))}
           </datalist>
         </div>
@@ -79,28 +87,7 @@ function MealModal({ meal, onClose }: { meal: Partial<Meal>; onClose: () => void
             </select>
           </div>
         </div>
-        <div>
-          <span className="label">Ingrediënten</span>
-          <ul className="space-y-2">
-            {ingredients.map((ing, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <input className="input" aria-label="Ingrediënt" placeholder="Ingrediënt" value={ing.name} onChange={(e) => setIng(i, { name: e.target.value })} />
-                <input className="input !w-24" aria-label="Hoeveelheid" placeholder="Aantal" value={ing.quantity} onChange={(e) => setIng(i, { quantity: e.target.value })} />
-                <select className="input !w-auto" aria-label="Categorie" value={ing.category} onChange={(e) => setIng(i, { category: e.target.value })}>
-                  {Object.entries(SHOPPING_CATEGORIES).map(([k, c]) => (
-                    <option key={k} value={k}>{c.icon}</option>
-                  ))}
-                </select>
-                <button type="button" className="btn-ghost !p-1.5 text-danger" aria-label="Ingrediënt verwijderen" onClick={() => setIngredients((l) => l.filter((_, idx) => idx !== i))}>
-                  <Trash2 size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button type="button" className="btn-ghost mt-2" onClick={() => setIngredients((l) => [...l, { name: '', quantity: '', category: 'other' }])}>
-            <Plus size={16} /> Ingrediënt toevoegen
-          </button>
-        </div>
+        <IngredientsEditor value={ingredients} onChange={setIngredients} />
         <div>
           <label className="label" htmlFor="m-notes">Notities (optioneel)</label>
           <textarea id="m-notes" className="input min-h-[60px]" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Recept-link, bijzonderheden…" />
@@ -119,6 +106,11 @@ function MealModal({ meal, onClose }: { meal: Partial<Meal>; onClose: () => void
                 }}
               >
                 <Trash2 size={16} /> Verwijderen
+              </button>
+            )}
+            {title.trim() && !isRecipe && (
+              <button type="button" className="btn-secondary" onClick={toRecipe}>
+                <Book size={16} /> Als recept opslaan
               </button>
             )}
             {clean().length > 0 && (
