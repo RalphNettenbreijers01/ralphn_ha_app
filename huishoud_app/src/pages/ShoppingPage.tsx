@@ -3,6 +3,7 @@ import { Check, Pencil, Plus, Trash2 } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import Modal from '../components/Modal';
 import { SHOPPING_CATEGORIES } from '../lib/storage';
+import { confetti } from '../lib/fun';
 import type { ShoppingItem } from '../types';
 
 function ItemModal({ item, onClose }: { item: ShoppingItem; onClose: () => void }) {
@@ -53,7 +54,10 @@ function ItemRow({ item, onEdit }: { item: ShoppingItem; onEdit: (i: ShoppingIte
   return (
     <li className="flex items-center gap-3 rounded-xl border border-line px-3 py-2 transition hover:bg-fg/5">
       <button
-        onClick={() => toggleShoppingItem(item.id)}
+        onClick={(e) => {
+          if (!item.done) confetti(e.clientX, e.clientY, ['🛒', '✨', '🥕', '🍎', '🧀'], 7);
+          toggleShoppingItem(item.id);
+        }}
         aria-label={item.done ? 'Terugzetten op de lijst' : 'Afvinken'}
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ${
           item.done ? 'border-ok bg-ok text-white' : 'border-muted text-transparent hover:border-ok hover:text-ok'
@@ -107,7 +111,7 @@ export default function ShoppingPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-2xl font-bold">Boodschappen</h1>
+        <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">🛒</span>Boodschappen</h1>
         <p className="text-sm text-muted">{open.length} te halen{done.length ? ` · ${done.length} in het mandje` : ''}</p>
       </header>
 

@@ -6,6 +6,7 @@ import Modal from '../components/Modal';
 import { BADGES, computeStats, currentStreak } from '../lib/badges';
 import { balanceOf, levelOf, totalEarned } from '../lib/points';
 import { REWARD_EXAMPLES, REWARD_ICONS } from '../lib/storage';
+import { celebrate } from '../lib/fun';
 import type { Reward } from '../types';
 
 function RewardModal({ reward, onClose }: { reward: Partial<Reward>; onClose: () => void }) {
@@ -99,7 +100,7 @@ export default function PointsPage() {
   if (users.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Punten & badges</h1>
+        <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">🏆</span>Punten & badges</h1>
         <div className="card py-12 text-center text-muted">Voeg eerst gebruikers toe. Ze verdienen punten door taken af te ronden.</div>
       </div>
     );
@@ -108,7 +109,7 @@ export default function PointsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold">Punten & badges</h1>
+        <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">🏆</span>Punten & badges</h1>
         <p className="text-sm text-muted">Verdien punten met taken, haal badges en wissel punten in voor beloningen.</p>
       </header>
 
@@ -182,6 +183,7 @@ export default function PointsPage() {
                     onClick={() => {
                       if (current && confirm(`${current.name}: “${r.title}” inwisselen voor ${r.cost} punten?`) && redeemReward(current.id, r.id)) {
                         toast(`${r.icon} ${current.name} heeft “${r.title}” ingewisseld!`);
+                        celebrate();
                       }
                     }}
                   >
@@ -208,7 +210,7 @@ export default function PointsPage() {
               const when = earnedAt(b.id);
               return (
                 <li key={b.id} title={b.description} className={`flex flex-col items-center rounded-xl border p-3 text-center ${got ? 'border-warn/50 bg-warn/10' : 'border-line'}`}>
-                  <span className={`text-4xl ${got ? '' : 'opacity-30 grayscale'}`}>{b.icon}</span>
+                  <span className={`inline-block text-5xl ${got ? 'animate-shine hover:animate-wiggle' : 'opacity-30 grayscale'}`}>{b.icon}</span>
                   <p className="mt-1 text-sm font-semibold">{b.name}</p>
                   <p className="text-xs text-muted">{b.description}</p>
                   {got ? (

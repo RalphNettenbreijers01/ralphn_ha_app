@@ -5,6 +5,7 @@ import { STATUS_LABELS, type Task, type TaskInstance } from '../types';
 import { describeRepeat } from '../lib/recurrence';
 import { taskPoints } from '../lib/points';
 import { formatShort } from '../lib/dates';
+import { confetti } from '../lib/fun';
 
 export const STATUS_STYLES: Record<Task['status'], string> = {
   open: 'bg-fg/10 text-muted',
@@ -27,7 +28,10 @@ export default function TaskRow({ task, onEdit, showDate }: Props) {
   return (
     <li className="flex items-center gap-3 rounded-xl p-3 border border-line transition hover:bg-fg/5">
       <button
-        onClick={() => setTaskStatus(task.id, done ? 'open' : 'done', task.occurrence)}
+        onClick={(e) => {
+          if (!done) confetti(e.clientX, e.clientY);
+          setTaskStatus(task.id, done ? 'open' : 'done', task.occurrence);
+        }}
         aria-label={done ? 'Markeer als open' : 'Markeer als voltooid'}
         title={done ? 'Terug naar open' : 'Afvinken'}
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${

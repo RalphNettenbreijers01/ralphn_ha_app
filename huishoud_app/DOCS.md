@@ -82,3 +82,7 @@ Pagina "Overzicht": per week, maand, 90 dagen of jaar: afgeronde taken, percenta
 - Valt de verbinding weg terwijl de app open staat (bijv. in de winkel), dan werk je gewoon door: alles wordt lokaal bewaard en er staat een melding "Geen verbinding". Zodra er weer verbinding is, worden de wijzigingen automatisch verstuurd en per item samengevoegd met wat anderen intussen deden.
 - Open je de app later opnieuw, dan worden niet-verstuurde wijzigingen eerst samengevoegd met de server, zodat er niets verloren gaat.
 - Een service worker bewaart de app zelf, zodat hij ook bij opstarten zonder verbinding kan laden. Let op: de app draait in Home Assistant; die moet zelf ook kunnen laden. Opstarten zonder enige verbinding werkt dus alleen als Home Assistant (of de app erin) al in de cache van je telefoon of browser staat.
+
+## Uiterlijk
+
+Het menu en de pagina's gebruiken kleurrijke emoji als pictogrammen, elk onderdeel met een eigen kleur. Taken afvinken, een badge halen of een beloning inwisselen laat confetti vliegen. Wie liever geen bewegende elementen ziet, krijgt ze automatisch niet als "beweging verminderen" aan staat in het besturingssysteem.

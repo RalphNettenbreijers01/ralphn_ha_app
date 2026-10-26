@@ -3,6 +3,7 @@ import { Check, Pencil, Plus, Trash2 } from '../components/icons';
 import { useStore } from '../store/AppContext';
 import Modal from '../components/Modal';
 import { LIST_ICONS, LIST_TEMPLATES } from '../lib/storage';
+import { confetti } from '../lib/fun';
 import type { List } from '../types';
 
 function ListModal({ list, onClose, onDeleted }: { list: Partial<List>; onClose: () => void; onDeleted: () => void }) {
@@ -89,7 +90,10 @@ export default function ListsPage() {
   const row = (i: (typeof items)[number]) => (
     <li key={i.id} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2 hover:bg-fg/5">
       <button
-        onClick={() => toggleListItem(i.id)}
+        onClick={(e) => {
+          if (!i.done) confetti(e.clientX, e.clientY, ['✅', '✨', '👍'], 7);
+          toggleListItem(i.id);
+        }}
         aria-label={i.done ? 'Terugzetten' : 'Afvinken'}
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ${i.done ? 'border-ok bg-ok text-white' : 'border-muted text-transparent hover:border-ok hover:text-ok'}`}
       >
@@ -106,7 +110,7 @@ export default function ListsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Lijsten</h1>
+          <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">📋</span>Lijsten</h1>
           <p className="text-sm text-muted">Gedeelde lijstjes naast de boodschappen: inpakken, klusjes, cadeau-ideeën…</p>
         </div>
         <button className="btn-primary" onClick={() => setEditing({})}>

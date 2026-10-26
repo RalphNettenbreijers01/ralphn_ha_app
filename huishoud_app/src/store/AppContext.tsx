@@ -5,6 +5,7 @@ import { STORAGE_KEY, fetchAfval, fetchRemote, loadData, pushRemote, saveData, s
 import { todayISO } from '../lib/dates';
 import { balanceOf, reconcile } from '../lib/points';
 import { BADGES } from '../lib/badges';
+import { celebrate } from '../lib/fun';
 import { applyTypeSettings, mergePickups, removeUpcoming, type Pickup } from '../lib/afval';
 
 type Draft<T extends { id: string }> = Omit<T, 'id'> & { id?: string };
@@ -379,6 +380,7 @@ export function AppProvider({ children, initial, remote }: { children: ReactNode
       seenBadges.current.add(b.id);
       const def = BADGES.find((x) => x.id === b.badgeId);
       const user = data.users.find((u) => u.id === b.userId);
+      if (def && user && Date.now() - b.earnedAt < 60_000) celebrate();
       if (def && user && Date.now() - b.earnedAt < 60_000) toast(`${def.icon} ${user.name} heeft de badge “${def.name}” behaald!`);
     }
   }, [data.badges, data.users, toast]);

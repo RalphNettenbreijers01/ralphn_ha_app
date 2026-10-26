@@ -8,7 +8,9 @@ export const uid = () =>
 
 export const USER_COLORS = ['#6366f1', '#ec4899', '#f97316', '#10b981', '#06b6d4', '#eab308', '#8b5cf6', '#ef4444'];
 export const EMOJI_AVATARS = [
-  '👩', '👨', '🧒', '👧', '👦', '👵', '👴', '🧑‍🍳', '🦸', '🧙', '🐱', '🐶', '🦊', '🐼', '🦉', '🤖',
+  '👩', '👨', '🧒', '👧', '👦', '👵', '👴', '🧑‍🍳', '🦸', '🦹', '🧙', '🧛', '🧜', '🧚', '🥷', '🤠',
+  '🐱', '🐶', '🦊', '🐼', '🐨', '🦁', '🐯', '🐸', '🐵', '🦄', '🐙', '🦖', '🐧', '🦉', '🦋', '🐝',
+  '🤖', '👽', '👻', '🎃', '🥑', '🍕', '🌵', '🚀',
 ];
 export const NOTE_COLORS: Record<string, string> = {
   yellow: '#fff59d',
@@ -31,7 +33,7 @@ export const SHOPPING_CATEGORIES: Record<string, { label: string; icon: string }
   other: { label: 'Overig', icon: '🛒' },
 };
 
-export const REWARD_ICONS = ['🎬', '😴', '🍦', '🎮', '🍕', '🎁', '🛍️', '🎢', '🧸', '📱'];
+export const REWARD_ICONS = ['🎬', '😴', '🍦', '🎮', '🍕', '🎁', '🛍️', '🎢', '🧸', '📱', '🍿', '🏊', '🎤', '🍩', '🎈', '💸', '🚲', '👑'];
 
 export const REWARD_EXAMPLES = [
   { title: 'Filmavond kiezen', icon: '🎬', cost: 50 },
@@ -41,7 +43,7 @@ export const REWARD_EXAMPLES = [
   { title: 'Kiezen wat we eten', icon: '🍕', cost: 60 },
 ];
 
-export const LIST_ICONS = ['📝', '🧰', '🎁', '🧳', '🏖️', '🎄', '📚', '🎬', '🌱', '⭐'];
+export const LIST_ICONS = ['📝', '🧰', '🎁', '🧳', '🏖️', '🎄', '📚', '🎬', '🌱', '⭐', '🎂', '🏕️', '🐾', '💡', '🧪', '🎯'];
 
 export const LIST_TEMPLATES = [
   { name: 'Inpaklijst vakantie', icon: '🧳' },
@@ -50,7 +52,7 @@ export const LIST_TEMPLATES = [
   { name: 'Wensenlijst', icon: '⭐' },
 ];
 
-export const ROOM_ICONS = ['🍳', '🛋️', '🛁', '🌳', '🛏️', '🚗', '🧺', '💻', '🚪', '📦'];
+export const ROOM_ICONS = ['🍳', '🛋️', '🛁', '🌳', '🛏️', '🚗', '🧺', '💻', '🚪', '📦', '🎧', '🪴', '🎮', '🧸', '🚿', '🔧', '🐕', '🎨'];
 
 const defaultData = (): AppData => ({
   users: [],

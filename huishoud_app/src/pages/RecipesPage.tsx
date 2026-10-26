@@ -137,7 +137,7 @@ export default function RecipesPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Recepten</h1>
+          <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">👩‍🍳</span>Recepten</h1>
           <p className="text-sm text-muted">Gerechten die jullie vaker maken. Eén klik zet de ingrediënten op de boodschappenlijst.</p>
         </div>
         <button className="btn-primary" onClick={() => setEditing({})}>

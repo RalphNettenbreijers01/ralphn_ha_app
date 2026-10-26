@@ -1,48 +1,13 @@
-import {
-  mdiAlert,
-  mdiCalendarMonth,
-  mdiCalendarClock,
-  mdiCheck,
-  mdiCheckCircle,
-  mdiChevronLeft,
-  mdiChevronRight,
-  mdiClockOutline,
-  mdiClose,
-  mdiDelete,
-  mdiDoorOpen,
-  mdiHome,
-  mdiImagePlus,
-  mdiAccountGroup,
-  mdiFormatListChecks,
-  mdiMagnify,
-  mdiPencil,
-  mdiPlus,
-  mdiRepeat,
-  mdiFormatListBulleted,
-  mdiChartBar,
-  mdiCloudOffOutline,
-  mdiBookOpenPageVariantOutline,
-  mdiTrophyOutline,
-  mdiSilverwareForkKnife,
-  mdiGiftOutline,
-  mdiStar,
-  mdiLock,
-  mdiTrashCanOutline,
-  mdiCartOutline,
-  mdiNoteTextOutline,
-  mdiPin,
-  mdiPinOutline,
-  mdiWhiteBalanceSunny,
-} from '@mdi/js';
+import { mdiCheck, mdiChevronLeft, mdiChevronRight, mdiClose } from '@mdi/js';
 
-// Home Assistant gebruikt Material Design Icons (mdi); dezelfde set als hier.
 interface IconProps {
   size?: number;
   strokeWidth?: number; // genegeerd, alleen voor compatibiliteit
   className?: string;
 }
 
-const make = (path: string) =>
+/** Functionele pijltjes/vinkjes blijven strakke mdi-vectoren (die moeten van kleur kunnen wisselen). */
+const vector = (path: string) =>
   function Icon({ size = 24, className }: IconProps) {
     return (
       <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" className={className} aria-hidden="true">
@@ -51,37 +16,52 @@ const make = (path: string) =>
     );
   };
 
-export const AlertTriangle = make(mdiAlert);
-export const CalendarClock = make(mdiCalendarClock);
-export const CalendarDays = make(mdiCalendarMonth);
-export const Check = make(mdiCheck);
-export const CheckCircle2 = make(mdiCheckCircle);
-export const ChevronLeft = make(mdiChevronLeft);
-export const ChevronRight = make(mdiChevronRight);
-export const Clock = make(mdiClockOutline);
-export const DoorOpen = make(mdiDoorOpen);
-export const Home = make(mdiHome);
-export const ImagePlus = make(mdiImagePlus);
-export const ListChecks = make(mdiFormatListChecks);
-export const Pencil = make(mdiPencil);
-export const Plus = make(mdiPlus);
-export const RepeatIcon = make(mdiRepeat);
-export const Cart = make(mdiCartOutline);
-export const Note = make(mdiNoteTextOutline);
-export const Pin = make(mdiPin);
-export const PinOutline = make(mdiPinOutline);
-export const Bin = make(mdiTrashCanOutline);
-export const Trophy = make(mdiTrophyOutline);
-export const Meal = make(mdiSilverwareForkKnife);
-export const Gift = make(mdiGiftOutline);
-export const Star = make(mdiStar);
-export const Lock = make(mdiLock);
-export const Book = make(mdiBookOpenPageVariantOutline);
-export const Lists = make(mdiFormatListBulleted);
-export const ChartBar = make(mdiChartBar);
-export const CloudOff = make(mdiCloudOffOutline);
-export const Search = make(mdiMagnify);
-export const Sun = make(mdiWhiteBalanceSunny);
-export const Trash2 = make(mdiDelete);
-export const Users = make(mdiAccountGroup);
-export const X = make(mdiClose);
+/** Al het andere: kleurrijke emoji, zodat de app wat vrolijker oogt. */
+const emoji = (e: string) =>
+  function Icon({ size = 24, className = '' }: IconProps) {
+    return (
+      <span
+        aria-hidden="true"
+        className={`inline-block shrink-0 select-none text-center ${className}`}
+        style={{ width: size, height: size, fontSize: size * 0.85, lineHeight: `${size}px` }}
+      >
+        {e}
+      </span>
+    );
+  };
+
+export const Check = vector(mdiCheck);
+export const ChevronLeft = vector(mdiChevronLeft);
+export const ChevronRight = vector(mdiChevronRight);
+export const X = vector(mdiClose);
+
+export const AlertTriangle = emoji('🚨');
+export const Bin = emoji('♻️');
+export const Book = emoji('📖');
+export const CalendarClock = emoji('🗓️');
+export const CalendarDays = emoji('📅');
+export const Cart = emoji('🛒');
+export const ChartBar = emoji('📊');
+export const CheckCircle2 = emoji('🎉');
+export const Clock = emoji('⏰');
+export const CloudOff = emoji('📡');
+export const DoorOpen = emoji('🚪');
+export const Gift = emoji('🎁');
+export const Home = emoji('🏠');
+export const ImagePlus = emoji('🖼️');
+export const ListChecks = emoji('✅');
+export const Lists = emoji('📋');
+export const Lock = emoji('🔒');
+export const Meal = emoji('🍝');
+export const Note = emoji('📌');
+export const Pencil = emoji('✏️');
+export const Pin = emoji('📌');
+export const PinOutline = emoji('📍');
+export const Plus = emoji('➕');
+export const RepeatIcon = emoji('🔁');
+export const Search = emoji('🔍');
+export const Star = emoji('⭐');
+export const Sun = emoji('☀️');
+export const Trash2 = emoji('🗑️');
+export const Trophy = emoji('🏆');
+export const Users = emoji('👨‍👩‍👧‍👦');

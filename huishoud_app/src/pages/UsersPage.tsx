@@ -120,7 +120,7 @@ export default function UsersPage() {
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Gebruikers</h1>
+        <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">👨‍👩‍👧‍👦</span>Gebruikers</h1>
         <button className="btn-primary" onClick={() => setEditing({})}>
           <Plus size={16} /> Nieuwe gebruiker
         </button>

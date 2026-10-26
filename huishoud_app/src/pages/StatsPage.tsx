@@ -103,7 +103,7 @@ export default function StatsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Overzicht</h1>
+          <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">📊</span>Overzicht</h1>
           <p className="text-sm text-muted">{parseISO(from).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} t/m vandaag</p>
         </div>
         <div className="flex rounded-lg bg-fg/10 p-0.5 text-sm">
@@ -116,15 +116,15 @@ export default function StatsPage() {
       </header>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi label="Taken afgerond" value={s.done} sub={`van ${s.due} die klaar moesten zijn`} />
-        <Kpi label="Op schema" value={s.rate === null ? '–' : `${s.rate}%`} sub="afgerond binnen de periode" />
-        <Kpi label="Achterstallig" value={<span className={s.overdue ? 'text-danger' : ''}>{s.overdue}</span>} sub="nog niet gedaan" />
-        <Kpi label="Punten verdiend" value={s.ptsTotal} sub="door het hele huishouden" />
+        <Kpi label="✅ Taken afgerond" value={s.done} sub={`van ${s.due} die klaar moesten zijn`} />
+        <Kpi label="🎯 Op schema" value={s.rate === null ? '–' : `${s.rate}%`} sub="afgerond binnen de periode" />
+        <Kpi label="⏳ Achterstallig" value={<span className={s.overdue ? 'text-danger' : ''}>{s.overdue}</span>} sub="nog niet gedaan" />
+        <Kpi label="⭐ Punten verdiend" value={s.ptsTotal} sub="door het hele huishouden" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card" aria-label="Taken per persoon">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Afgerond per persoon</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">🧑‍🤝‍🧑 Afgerond per persoon</h2>
           {users.length === 0 ? (
             <p className="text-sm text-muted">Nog geen gebruikers.</p>
           ) : (
@@ -138,7 +138,7 @@ export default function StatsPage() {
         </section>
 
         <section className="card" aria-label="Taken per ruimte">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Afgerond per ruimte</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">🏠 Afgerond per ruimte</h2>
           {s.perRoom.length === 0 ? (
             <p className="text-sm text-muted">Geen afgeronde taken met een ruimte in deze periode.</p>
           ) : (
@@ -153,7 +153,7 @@ export default function StatsPage() {
 
       <section className="card" aria-label="Verloop per week">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Laatste 8 weken</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">📈 Laatste 8 weken</h2>
           <span className="flex items-center gap-4 text-xs text-muted">
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" /> Afgerond</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fg/25" /> Niet afgerond</span>
@@ -175,7 +175,7 @@ export default function StatsPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card" aria-label="Afgerond per weekdag">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Op welke dag rond je taken af</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">🗓️ Op welke dag rond je taken af</h2>
           <ul className="flex h-32 items-end gap-3">
             {s.perDay.map((n, i) => (
               <li key={i} className="flex h-full flex-1 flex-col justify-end gap-1" title={`${WEEKDAYS[i]}: ${n}`}>
@@ -188,7 +188,7 @@ export default function StatsPage() {
         </section>
 
         <section className="card" aria-label="Meest gemaakte gerechten">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Maaltijden in deze periode</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">🍽️ Maaltijden in deze periode</h2>
           {s.topMeals.length === 0 ? (
             <p className="text-sm text-muted">Geen maaltijden gepland in deze periode.</p>
           ) : (

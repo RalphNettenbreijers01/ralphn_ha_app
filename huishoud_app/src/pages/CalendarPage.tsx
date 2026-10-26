@@ -70,7 +70,7 @@ export default function CalendarPage() {
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Kalender</h1>
+        <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">📅</span>Kalender</h1>
         <button className="btn-primary" onClick={() => setEditing({ date: today })}>
           <Plus size={16} /> Nieuwe taak
         </button>

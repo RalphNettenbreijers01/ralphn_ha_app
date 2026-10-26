@@ -29,7 +29,7 @@ export default function AfvalPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Afval</h1>
+          <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">♻️</span>Afval</h1>
           <p className="text-sm text-muted">Ophaaldagen uit Home Assistant, als taak op de avond ervoor.</p>
         </div>
         <button className="btn-primary" disabled={busy || !info?.configured} onClick={() => load(true)}>

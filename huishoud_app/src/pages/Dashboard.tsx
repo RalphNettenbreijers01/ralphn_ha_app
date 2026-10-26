@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CalendarClock, Cart, CheckCircle2, Check, Meal, Note, Plus, Sun, Trophy } from '../components/icons';
+import { AlertTriangle, CalendarClock, Cart, CheckCircle2, Check, Meal, Note, Plus, Trophy } from '../components/icons';
 import StickyNote from '../components/StickyNote';
 import { useStore } from '../store/AppContext';
 import TaskRow from '../components/TaskRow';
@@ -9,6 +9,7 @@ import { addDays, formatLong, toISO, todayISO } from '../lib/dates';
 import type { TaskInstance } from '../types';
 import { expandAll } from '../lib/recurrence';
 import { balanceOf, totalEarned } from '../lib/points';
+import { confetti, greeting } from '../lib/fun';
 import type { AppData } from '../types';
 
 const byTime = (a: TaskInstance, b: TaskInstance) => (a.time || '99:99').localeCompare(b.time || '99:99');
@@ -39,13 +40,16 @@ export default function Dashboard() {
     .filter((t) => t.status !== 'done')
     .sort((a, b) => a.date.localeCompare(b.date) || byTime(a, b));
   const pct = todays.length ? Math.round((todayDone / todays.length) * 100) : 0;
+  const mood = !todays.length ? '😌' : pct === 100 ? '🤩' : pct >= 50 ? '😎' : pct > 0 ? '🙂' : '😴';
 
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm capitalize text-muted">{formatLong(new Date())}</p>
+          <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">🏠</span>Dashboard</h1>
+          <p className="text-sm text-muted">
+            {greeting().text} {greeting().emoji} · <span className="capitalize">{formatLong(new Date())}</span>
+          </p>
         </div>
         <button className="btn-primary" onClick={() => setEditing({ date: today })}>
           <Plus size={16} /> Nieuwe taak
@@ -57,7 +61,7 @@ export default function Dashboard() {
         <section className="card self-start lg:col-span-2">
           <div className="mb-4">
             <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold"><Sun size={20} className="text-warn" /> Vandaag</h2>
+              <h2 className="flex items-center gap-2 text-lg font-semibold"><span className="inline-block animate-floaty text-2xl" title="Zo gaat het vandaag">{mood}</span> Vandaag</h2>
               <span className="text-sm text-muted">{todayDone} van {todays.length} voltooid</span>
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-fg/10">
@@ -68,7 +72,7 @@ export default function Dashboard() {
             {todays.length === 0 ? (
               <div className="py-8 text-center text-muted">
                 <CheckCircle2 className="mx-auto mb-2 text-ok" size={32} />
-                Geen taken voor vandaag. Geniet van de rust! 🎉
+                Geen taken voor vandaag. Geniet van de rust! 🛋️🍹
               </div>
             ) : (
               <ul className="space-y-2">
@@ -174,7 +178,10 @@ export default function Dashboard() {
               {toBuy.slice(0, 6).map((i) => (
                 <li key={i.id} className="flex items-center gap-3">
                   <button
-                    onClick={() => toggleShoppingItem(i.id)}
+                    onClick={(e) => {
+                      confetti(e.clientX, e.clientY, ['🛒', '✨', '🥕', '🍎'], 6);
+                      toggleShoppingItem(i.id);
+                    }}
                     aria-label={`${i.name} afvinken`}
                     className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-muted text-transparent hover:border-ok hover:text-ok"
                   >

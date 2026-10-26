@@ -167,7 +167,7 @@ export interface AppData {
 }
 
 export const STATUS_LABELS: Record<TaskStatus, string> = {
-  open: 'Open',
-  in_progress: 'In behandeling',
-  done: 'Voltooid',
+  open: '📝 Open',
+  in_progress: '🔨 Bezig',
+  done: '✅ Voltooid',
 };

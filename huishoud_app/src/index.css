@@ -42,3 +42,11 @@
   /* zoals ha-card: afgeronde hoeken, dunne rand, kaartachtergrond */
   .card { @apply rounded-xl border border-line bg-card p-5; }
 }
+
+/* wie liever geen bewegende dingen ziet */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

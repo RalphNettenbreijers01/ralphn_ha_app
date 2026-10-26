@@ -97,7 +97,7 @@ export default function NotesPage() {
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Notities</h1>
+        <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">📌</span>Notities</h1>
         <button className="btn-primary" onClick={() => setEditing({})}>
           <Plus size={16} /> Nieuwe notitie
         </button>

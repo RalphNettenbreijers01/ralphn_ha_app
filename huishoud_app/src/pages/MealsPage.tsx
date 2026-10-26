@@ -147,7 +147,7 @@ export default function MealsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Maaltijden</h1>
+          <h1 className="text-2xl font-bold"><span className="mr-2 inline-block animate-floaty">🍝</span>Maaltijden</h1>
           <p className="text-sm capitalize text-muted">{short(days[0])} t/m {short(days[6])}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
